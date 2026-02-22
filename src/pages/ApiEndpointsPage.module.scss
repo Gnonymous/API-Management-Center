@@ -1,0 +1,455 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 0 0 2rem;
+}
+
+.pageTitle {
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.pageSubtitle {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin: -0.75rem 0 0;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.searchBox {
+  position: relative;
+  flex: 1;
+  min-width: 180px;
+  max-width: 360px;
+
+  .searchIcon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-tertiary);
+    pointer-events: none;
+  }
+
+  input {
+    width: 100%;
+    padding: 0.45rem 0.75rem 0.45rem 2rem;
+    border: 1px solid var(--border-color);
+    border-radius: $radius-md;
+    background: var(--input-bg);
+    color: var(--text-primary);
+    font-size: 0.82rem;
+    outline: none;
+    transition: border-color 0.2s;
+
+    &:focus {
+      border-color: var(--primary);
+    }
+
+    &::placeholder {
+      color: var(--text-tertiary);
+    }
+  }
+}
+
+/* ── Provider cards grid ── */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+  gap: 1.25rem;
+
+  @media (max-width: 520px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Single provider card ── */
+.providerCard {
+  border: 1px solid var(--border-color);
+  border-radius: $radius-lg;
+  background: var(--card-bg);
+  overflow: hidden;
+  transition:
+    box-shadow 0.25s,
+    border-color 0.25s;
+
+  &:hover {
+    border-color: var(--primary-muted, var(--primary));
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  }
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-secondary, var(--card-bg));
+}
+
+.providerIcon {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.providerIconFallback {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+
+.providerName {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  flex: 1;
+}
+
+.statusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+
+  &.active {
+    background: var(--success, #22c55e);
+    box-shadow: 0 0 6px rgba(34, 197, 94, 0.45);
+  }
+
+  &.inactive {
+    background: var(--text-tertiary);
+    opacity: 0.5;
+  }
+}
+
+.cardBody {
+  padding: 0.85rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+/* ── Info row (Base URL / API Key) ── */
+.infoRow {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.infoLabel {
+  font-size: 0.72rem;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+}
+
+.infoValue {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.monoValue {
+  font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', 'Menlo', monospace;
+  font-size: 0.8rem;
+  color: var(--text-primary);
+  background: var(--bg-tertiary, var(--input-bg));
+  padding: 0.3rem 0.55rem;
+  border-radius: $radius-sm;
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.copyBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--border-color);
+  border-radius: $radius-sm;
+  background: var(--bg-secondary, var(--card-bg));
+  color: var(--text-secondary);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    background 0.15s,
+    color 0.15s;
+
+  &:hover {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+  }
+
+  &.copied {
+    background: var(--success, #22c55e);
+    color: #fff;
+    border-color: var(--success, #22c55e);
+  }
+}
+
+.eyeBtn {
+  @extend .copyBtn;
+}
+
+/* ── API Key selector ── */
+.keySelect {
+  font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', 'Menlo', monospace;
+  font-size: 0.8rem;
+  color: var(--text-primary);
+  background: var(--bg-tertiary, var(--input-bg));
+  padding: 0.3rem 0.55rem;
+  border-radius: $radius-sm;
+  border: 1px solid var(--border-color);
+  flex: 1;
+  min-width: 0;
+  outline: none;
+  cursor: pointer;
+
+  &:focus {
+    border-color: var(--primary);
+  }
+}
+
+/* ── Models section ── */
+.modelSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.modelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modelCount {
+  font-size: 0.72rem;
+  color: var(--text-tertiary);
+  font-weight: 500;
+}
+
+.modelTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  max-height: 96px;
+  overflow-y: auto;
+  padding-right: 4px;
+
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 2px;
+  }
+}
+
+.modelTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.18rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  background: var(--bg-tertiary, var(--input-bg));
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  transition:
+    background 0.15s,
+    color 0.15s;
+
+  &:hover {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+  }
+}
+
+.modelName {
+  font-weight: 500;
+}
+
+.showMore {
+  align-self: flex-start;
+  font-size: 0.75rem;
+  color: var(--primary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.1rem 0;
+  font-weight: 500;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+/* ── Code snippet section ── */
+.codeSection {
+  border-top: 1px solid var(--border-color);
+  padding-top: 0.75rem;
+}
+
+.codeToggle {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--primary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.codeTabs {
+  display: flex;
+  gap: 0;
+  margin-top: 0.55rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.codeTab {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition:
+    color 0.15s,
+    border-color 0.15s;
+
+  &.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+  }
+
+  &:hover {
+    color: var(--text-primary);
+  }
+}
+
+.codeBlock {
+  position: relative;
+  margin-top: 0.5rem;
+
+  pre {
+    font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', 'Menlo', monospace;
+    font-size: 0.75rem;
+    line-height: 1.55;
+    background: var(--bg-tertiary, var(--input-bg));
+    border: 1px solid var(--border-color);
+    border-radius: $radius-md;
+    padding: 0.65rem 0.8rem;
+    overflow-x: auto;
+    color: var(--text-primary);
+    white-space: pre-wrap;
+    word-break: break-all;
+    margin: 0;
+  }
+
+  .codeCopyBtn {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+  }
+}
+
+/* ── Quick test section ── */
+.testSection {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.testSelect {
+  font-size: 0.8rem;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: $radius-sm;
+  background: var(--input-bg);
+  color: var(--text-primary);
+  flex: 1;
+  min-width: 0;
+  outline: none;
+
+  &:focus {
+    border-color: var(--primary);
+  }
+}
+
+.testResult {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: $radius-sm;
+  margin-top: 0.35rem;
+
+  &.success {
+    color: var(--success, #22c55e);
+    background: rgba(34, 197, 94, 0.1);
+  }
+
+  &.error {
+    color: var(--error, #ef4444);
+    background: rgba(239, 68, 68, 0.1);
+  }
+}
+
+/* ── Empty state ── */
+.emptyState {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--text-tertiary);
+
+  .emptyTitle {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 0.35rem;
+  }
+
+  .emptyDesc {
+    font-size: 0.85rem;
+  }
+}
