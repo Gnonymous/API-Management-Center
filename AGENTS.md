@@ -31,3 +31,20 @@ Git history follows Conventional Commit style, for example `feat: add support fo
 ## Architecture & Configuration Notes
 
 This UI is not the proxy; it talks to the backend Management API under `/v0/management`. Treat backend contracts as the source of truth. For OAuth/provider changes, inspect `../CLIProxyAPI` before changing route names, provider keys, callback parameters, or auth-file semantics. Store no secrets in the repo; management keys are entered at runtime and persisted only in browser storage.
+
+## Fork & Upstream Sync Workflow
+
+This repository is a fork. Keep `upstream-main` as a read-only upstream mirror and keep local changes on `main`. Confirm both remotes before a sync:
+
+```
+origin   https://github.com/Gnonymous/API-Management-Center.git
+upstream https://github.com/router-for-me/Cli-Proxy-API-Management-Center.git
+```
+
+Use the repository sync script, which stashes a dirty worktree, updates the mirror, rebases `main`, and restores the stash:
+
+```bash
+AUTO_STASH=1 bun run sync:upstream
+```
+
+Resolve rebase conflicts by preserving upstream architecture and porting only the local feature. Do not commit application changes directly to `upstream-main`; use `git push origin main --force-with-lease` only after a successful rebase and verification.
