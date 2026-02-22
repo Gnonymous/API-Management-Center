@@ -9,7 +9,7 @@ lerna-debug.log*
 api.md
 usage.json
 CLAUDE.md
-AGENTS.md
+# AGENTS.md
 management-api*
 antigravity_usage.json
 codex_usage.json
@@ -32,3 +32,4 @@ settings.local.json
 *.njsproj
 *.sln
 *.sw?
+pnpm-lock.yaml
