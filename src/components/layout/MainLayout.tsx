@@ -22,6 +22,7 @@ import {
   IconSettings,
   IconShield,
   IconTimer,
+  IconZap,
 } from '@/components/ui/icons';
 import { INLINE_LOGO_JPEG } from '@/assets/logoInline';
 import {
@@ -46,6 +47,7 @@ const sidebarIcons: Record<string, ReactNode> = {
   config: <IconSettings size={18} />,
   logs: <IconScrollText size={18} />,
   system: <IconInfo size={18} />,
+  endpoints: <IconZap size={18} />,
 };
 
 // Header action icons - smaller size for header buttons
@@ -360,6 +362,7 @@ export function MainLayout() {
       ? [{ path: '/logs', label: t('nav.logs'), icon: sidebarIcons.logs }]
       : []),
     { path: '/system', label: t('nav.system_info'), icon: sidebarIcons.system },
+    { path: '/endpoints', label: t('nav.api_endpoints'), icon: sidebarIcons.endpoints },
   ];
   const navOrder = navItems.map((item) => item.path);
   const getRouteOrder = (pathname: string) => {
