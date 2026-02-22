@@ -12,6 +12,7 @@ import { PluginStorePage } from '@/features/plugins/PluginStorePage';
 import { ConfigPage } from '@/features/config/ConfigPage';
 import { LogsPage } from '@/pages/LogsPage';
 import { SystemPage } from '@/pages/SystemPage';
+import { ApiEndpointsPage } from '@/pages/ApiEndpointsPage';
 import { useAuthStore } from '@/stores';
 
 const createMainRoutes = (supportsPlugin: boolean) => [
@@ -43,6 +44,7 @@ const createMainRoutes = (supportsPlugin: boolean) => [
   { path: '/config', element: <ConfigPage /> },
   { path: '/logs', element: <LogsPage /> },
   { path: '/system', element: <SystemPage /> },
+  { path: '/endpoints', element: <ApiEndpointsPage /> },
   { path: '*', element: <Navigate to="/" replace /> },
 ];
 

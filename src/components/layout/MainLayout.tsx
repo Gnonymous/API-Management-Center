@@ -30,6 +30,7 @@ import {
   IconSidebarStore,
   IconSidebarSystem,
   IconChevronDown,
+  IconZap,
 } from '@/components/ui/icons';
 import { INLINE_LOGO_JPEG } from '@/assets/logoInline';
 import {
@@ -65,6 +66,7 @@ const sidebarIcons: Record<string, ReactNode> = {
   config: <IconSidebarConfig size={18} />,
   logs: <IconSidebarLogs size={18} />,
   system: <IconSidebarSystem size={18} />,
+  endpoints: <IconZap size={18} />,
 };
 
 interface SidebarNavLinkItem {
@@ -615,6 +617,12 @@ export function MainLayout() {
           labelKey: 'nav.ai_providers',
           metaKey: 'nav_meta.ai_providers',
           icon: sidebarIcons.aiProviders,
+        },
+        {
+          path: '/endpoints',
+          labelKey: 'nav.api_endpoints',
+          metaKey: 'nav_meta.api_endpoints',
+          icon: sidebarIcons.endpoints,
         },
         {
           path: '/auth-files',

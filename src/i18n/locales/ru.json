@@ -106,7 +106,8 @@
     "plugin_store": "Магазин плагинов",
     "config_management": "Панель конфигурации",
     "logs": "Просмотр логов",
-    "system_info": "Информация системы"
+    "system_info": "Информация системы",
+    "api_endpoints": "API-эндпоинты"
   },
   "nav_groups": {
     "operate": "Работа",
@@ -125,7 +126,8 @@
     "plugin_store": "Поиск и установка плагинов",
     "logs": "Трассировка запросов",
     "config_management": "Базовая конфигурация шлюза",
-    "system_info": "Состояние и диагностика"
+    "system_info": "Состояние и диагностика",
+    "api_endpoints": "Базовый URL, ключи и модели API"
   },
   "dashboard": {
     "hero_verdict_good": "Всё стабильно",
@@ -1708,6 +1710,32 @@
     },
     "modelCatalog": {
       "notLoaded": "Не загружено"
+    },
+    "api_endpoints": {
+      "title": "API-эндпоинты",
+      "subtitle": "Просмотр параметров подключения и тестирование поддерживаемых моделей",
+      "search_placeholder": "Поиск провайдеров...",
+      "refresh": "Обновить",
+      "empty_title": "Провайдеры не найдены",
+      "empty_desc": "Измените фильтр или проверьте подключение к серверу.",
+      "base_url": "Базовый URL",
+      "api_key": "API-ключ",
+      "no_keys": "API-ключ не настроен",
+      "models": "Поддерживаемые модели",
+      "model_count": "{{count}} моделей",
+      "show_more": "Показать ещё {{count}}",
+      "show_less": "Свернуть",
+      "no_models": "Модели недоступны",
+      "status_active": "Активен",
+      "status_inactive": "Неактивен",
+      "show_key": "Показать API-ключ",
+      "hide_key": "Скрыть API-ключ",
+      "test_select_placeholder": "Выберите модель для тестирования",
+      "test_btn": "Быстрый тест",
+      "testing": "Тестирование...",
+      "test_success": "Подключение успешно!",
+      "code_examples": "Примеры кода",
+      "fetch_error": "Не удалось обновить"
     }
   }
 }

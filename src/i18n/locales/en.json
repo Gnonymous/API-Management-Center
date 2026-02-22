@@ -106,7 +106,8 @@
     "plugin_store": "Plugin Store",
     "config_management": "Config Panel",
     "logs": "Logs Viewer",
-    "system_info": "Management Center Info"
+    "system_info": "Management Center Info",
+    "api_endpoints": "API Endpoints"
   },
   "nav_groups": {
     "operate": "Operate",
@@ -126,7 +127,8 @@
     "plugin_store": "Discover & install plugins",
     "logs": "Request tracing",
     "config_management": "Gateway configuration",
-    "system_info": "Runtime & diagnostics"
+    "system_info": "Runtime & diagnostics",
+    "api_endpoints": "API base URL, keys, and models"
   },
   "dashboard": {
     "hero_verdict_good": "All systems steady",
@@ -1730,6 +1732,32 @@
     },
     "modelCatalog": {
       "notLoaded": "Not loaded"
+    },
+    "api_endpoints": {
+      "title": "API Endpoints",
+      "subtitle": "View connection details and test supported models",
+      "search_placeholder": "Search providers...",
+      "refresh": "Refresh",
+      "empty_title": "No providers found",
+      "empty_desc": "Try adjusting the filter or check the server connection.",
+      "base_url": "Base URL",
+      "api_key": "API Key",
+      "no_keys": "No API key configured",
+      "models": "Supported models",
+      "model_count": "{{count}} models",
+      "show_more": "Show {{count}} more",
+      "show_less": "Collapse",
+      "no_models": "No models available",
+      "status_active": "Active",
+      "status_inactive": "Inactive",
+      "show_key": "Show API key",
+      "hide_key": "Hide API key",
+      "test_select_placeholder": "Select a model to test",
+      "test_btn": "Quick test",
+      "testing": "Testing...",
+      "test_success": "Connection successful!",
+      "code_examples": "Code examples",
+      "fetch_error": "Failed to refresh"
     }
   }
 }
