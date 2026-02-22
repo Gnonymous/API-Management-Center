@@ -116,7 +116,8 @@
     "usage_stats": "使用统计",
     "config_management": "配置面板",
     "logs": "日志查看",
-    "system_info": "中心信息"
+    "system_info": "中心信息",
+    "api_endpoints": "API 端点"
   },
   "dashboard": {
     "title": "仪表盘",
@@ -1383,5 +1384,33 @@
     "build_date": "构建时间",
     "version": "管理中心版本",
     "author": "作者"
+  },
+  "api_endpoints": {
+    "title": "API 端点",
+    "description": "查看各提供商的 API 端点地址、密钥和支持的模型",
+    "search_placeholder": "搜索提供商...",
+    "refresh": "刷新",
+    "no_providers": "未找到提供商",
+    "no_providers_desc": "没有匹配搜索条件的 AI 提供商，请调整筛选条件或检查服务器连接。",
+    "base_url": "基础 URL",
+    "api_key": "API 密钥",
+    "no_api_key": "未配置 API 密钥",
+    "models": "支持的模型",
+    "models_count": "{{count}} 个模型",
+    "show_all_models": "展示全部 {{count}} 个模型",
+    "collapse_models": "收起",
+    "no_models": "暂无可用模型",
+    "active": "活跃",
+    "inactive": "未激活",
+    "copied": "已复制！",
+    "copy": "复制",
+    "show_key": "显示 API 密钥",
+    "hide_key": "隐藏 API 密钥",
+    "code_snippets": "代码示例",
+    "quick_test": "快速测试",
+    "testing": "测试中...",
+    "test_success": "连接成功！",
+    "test_failed": "连接失败",
+    "test_select_model": "请选择要测试的模型"
   }
 }
