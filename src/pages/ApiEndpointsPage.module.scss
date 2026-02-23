@@ -25,6 +25,46 @@
   flex-wrap: wrap;
 }
 
+.sectionList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.sourceSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.sourceHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sourceTitle {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.sourceCount {
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  padding: 0.1rem 0.45rem;
+  background: var(--bg-secondary, var(--card-bg));
+}
+
+.sectionEmpty {
+  font-size: 0.82rem;
+  color: var(--text-tertiary);
+  padding: 0.25rem 0.1rem;
+}
+
 .searchBox {
   position: relative;
   flex: 1;
@@ -258,6 +298,46 @@
   font-weight: 500;
 }
 
+.modelErrorRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.45rem 0.55rem;
+  border: 1px solid var(--border-color);
+  border-radius: $radius-sm;
+  background: var(--bg-tertiary, var(--input-bg));
+}
+
+.modelErrorText {
+  font-size: 0.75rem;
+  color: var(--warning-color, #c65746);
+  flex: 1;
+  min-width: 0;
+  word-break: break-word;
+}
+
+.modelRetryBtn {
+  border: 1px solid var(--border-color);
+  border-radius: $radius-sm;
+  background: var(--bg-secondary, var(--card-bg));
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  padding: 0.2rem 0.45rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    color 0.15s,
+    border-color 0.15s,
+    background 0.15s;
+
+  &:hover {
+    background: var(--primary-color);
+    color: #fff;
+    border-color: var(--primary-color);
+  }
+}
+
 .modelTags {
   display: flex;
   flex-wrap: wrap;
@@ -312,6 +392,12 @@
 
 .modelName {
   font-weight: 500;
+}
+
+.modelAlias {
+  font-size: 0.68rem;
+  color: var(--text-tertiary);
+  text-decoration: line-through;
 }
 
 .showMore {
