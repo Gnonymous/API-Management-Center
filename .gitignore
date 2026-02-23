@@ -32,4 +32,3 @@ settings.local.json
 *.njsproj
 *.sln
 *.sw?
-pnpm-lock.yaml
