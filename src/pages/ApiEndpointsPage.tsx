@@ -168,13 +168,13 @@ function ProviderCard({ group, baseUrl, apiKeys, resolvedTheme }: ProviderCardPr
         : iconEntry.light
     : null;
 
-  const handleCopy = async (text: string, field: string) => {
+  const handleCopy = async (text: string, field: string, successMessage?: string) => {
     const ok = await copyToClipboard(text);
     if (ok) {
       setCopiedField(field);
       if (copiedTimer.current) clearTimeout(copiedTimer.current);
       copiedTimer.current = setTimeout(() => setCopiedField(null), 1500);
-      showNotification(t('common.copy') + ' ✓', 'success');
+      showNotification(successMessage ?? `${t('common.copy')} ✓`, 'success');
     }
   };
 
@@ -315,11 +315,26 @@ function ProviderCard({ group, baseUrl, apiKeys, resolvedTheme }: ProviderCardPr
           {group.items.length > 0 ? (
             <>
               <div className={styles.modelTags}>
-                {displayModels.map((m) => (
-                  <span key={m.name} className={styles.modelTag} title={m.description || m.name}>
-                    <span className={styles.modelName}>{m.name}</span>
-                  </span>
-                ))}
+                {displayModels.map((m) => {
+                  const modelField = `model:${m.name}`;
+                  return (
+                    <button
+                      key={m.name}
+                      type="button"
+                      className={`${styles.modelTag} ${copiedField === modelField ? styles.modelTagCopied : ''}`}
+                      title={t('api_endpoints.copy_model')}
+                      onClick={() =>
+                        handleCopy(
+                          m.name,
+                          modelField,
+                          t('api_endpoints.model_copied', { model: m.name })
+                        )
+                      }
+                    >
+                      <span className={styles.modelName}>{m.name}</span>
+                    </button>
+                  );
+                })}
               </div>
               {hasMoreModels && (
                 <button className={styles.showMore} onClick={() => setModelsExpanded((v) => !v)}>

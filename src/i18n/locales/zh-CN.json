@@ -1396,6 +1396,8 @@
     "inactive": "未激活",
     "copied": "已复制！",
     "copy": "复制",
+    "copy_model": "点击复制模型名",
+    "model_copied": "已复制模型：{{model}}",
     "show_key": "显示 API 密钥",
     "hide_key": "隐藏 API 密钥",
     "code_snippets": "代码示例",
