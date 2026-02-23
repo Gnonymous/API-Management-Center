@@ -57,16 +57,7 @@ const maskKey = (key: string): string => {
   return `${key.slice(0, 5)}${'•'.repeat(Math.min(key.length - 8, 16))}${key.slice(-4)}`;
 };
 
-const buildBaseUrl = (managementBase: string): string => {
-  const normalized = normalizeApiBase(managementBase);
-  if (!normalized) return '';
-  try {
-    const url = new URL(normalized);
-    return `${url.protocol}//${url.host}`;
-  } catch {
-    return normalized;
-  }
-};
+const buildBaseUrl = (managementBase: string): string => normalizeApiBase(managementBase);
 
 const generateCurl = (baseUrl: string, apiKey: string, model: string): string =>
   `curl ${baseUrl}/v1/chat/completions \\
@@ -156,6 +147,14 @@ function ProviderCard({ group, baseUrl, apiKeys, resolvedTheme }: ProviderCardPr
   const [testResult, setTestResult] = useState<{ ok: boolean; msg: string } | null>(null);
   const copiedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  useEffect(() => {
+    return () => {
+      if (copiedTimer.current) {
+        clearTimeout(copiedTimer.current);
+      }
+    };
+  }, []);
+
   const currentKey = apiKeys[selectedKeyIdx] ?? '';
   const v1Url = `${baseUrl}/v1/chat/completions`;
   const sampleModel = group.items[0]?.name ?? 'model-name';
@@ -235,7 +234,7 @@ function ProviderCard({ group, baseUrl, apiKeys, resolvedTheme }: ProviderCardPr
         <span className={styles.providerName}>{group.label}</span>
         <span
           className={`${styles.statusDot} ${group.items.length > 0 ? styles.active : styles.inactive}`}
-          title={group.items.length > 0 ? t('api_endpoints.status_active') : t('api_endpoints.status_inactive')}
+          title={group.items.length > 0 ? t('api_endpoints.active') : t('api_endpoints.inactive')}
         />
       </div>
 
@@ -271,7 +270,7 @@ function ProviderCard({ group, baseUrl, apiKeys, resolvedTheme }: ProviderCardPr
               >
                 {apiKeys.map((k, i) => (
                   <option key={i} value={i}>
-                    {maskKey(k)}
+                    {keyVisible ? k : maskKey(k)}
                   </option>
                 ))}
               </select>
@@ -281,7 +280,7 @@ function ProviderCard({ group, baseUrl, apiKeys, resolvedTheme }: ProviderCardPr
                   ? keyVisible
                     ? currentKey
                     : maskKey(currentKey)
-                  : t('api_endpoints.no_keys')}
+                  : t('api_endpoints.no_api_key')}
               </span>
             )}
             {currentKey && (
@@ -310,7 +309,7 @@ function ProviderCard({ group, baseUrl, apiKeys, resolvedTheme }: ProviderCardPr
           <div className={styles.modelHeader}>
             <span className={styles.infoLabel}>{t('api_endpoints.models')}</span>
             <span className={styles.modelCount}>
-              {t('api_endpoints.model_count', { count: group.items.length })}
+              {t('api_endpoints.models_count', { count: group.items.length })}
             </span>
           </div>
           {group.items.length > 0 ? (
@@ -325,8 +324,8 @@ function ProviderCard({ group, baseUrl, apiKeys, resolvedTheme }: ProviderCardPr
               {hasMoreModels && (
                 <button className={styles.showMore} onClick={() => setModelsExpanded((v) => !v)}>
                   {modelsExpanded
-                    ? t('api_endpoints.show_less')
-                    : t('api_endpoints.show_more', { count: group.items.length - 12 })}
+                    ? t('api_endpoints.collapse_models')
+                    : t('api_endpoints.show_all_models', { count: group.items.length })}
                 </button>
               )}
             </>
@@ -343,7 +342,7 @@ function ProviderCard({ group, baseUrl, apiKeys, resolvedTheme }: ProviderCardPr
               value={testModel}
               onChange={(e) => setTestModel(e.target.value)}
             >
-              <option value="">{t('api_endpoints.test_select_placeholder')}</option>
+              <option value="">{t('api_endpoints.test_select_model')}</option>
               {group.items.map((m) => (
                 <option key={m.name} value={m.name}>{m.name}</option>
               ))}
@@ -355,7 +354,7 @@ function ProviderCard({ group, baseUrl, apiKeys, resolvedTheme }: ProviderCardPr
               loading={testing}
               disabled={!testModel || testing}
             >
-              {t('api_endpoints.test_btn')}
+              {'连接测试'}
             </Button>
           </div>
         )}
@@ -369,7 +368,7 @@ function ProviderCard({ group, baseUrl, apiKeys, resolvedTheme }: ProviderCardPr
         <div className={styles.codeSection}>
           <button className={styles.codeToggle} onClick={() => setCodeOpen((v) => !v)}>
             <IconCode size={14} />
-            {t('api_endpoints.code_examples')}
+            {t('api_endpoints.code_snippets')}
             {codeOpen ? <IconChevronUp size={14} /> : <IconChevronDown size={14} />}
           </button>
           {codeOpen && (
@@ -480,10 +479,10 @@ export function ApiEndpointsPage() {
         await fetchModelsFromStore(auth.apiBase, keys[0], forceRefresh);
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : String(err);
-        showNotification(`${t('api_endpoints.fetch_error')}: ${msg}`, 'error');
+        showNotification(msg, 'error');
       }
     },
-    [auth.connectionStatus, auth.apiBase, resolveApiKeys, fetchModelsFromStore, showNotification, t]
+    [auth.connectionStatus, auth.apiBase, resolveApiKeys, fetchModelsFromStore, showNotification]
   );
 
   useEffect(() => {
@@ -494,7 +493,7 @@ export function ApiEndpointsPage() {
   return (
     <div className={styles.container}>
       <h1 className={styles.pageTitle}>{t('api_endpoints.title')}</h1>
-      <p className={styles.pageSubtitle}>{t('api_endpoints.subtitle')}</p>
+      <p className={styles.pageSubtitle}>{t('api_endpoints.description')}</p>
 
       {/* Toolbar */}
       <div className={styles.toolbar}>
@@ -524,8 +523,8 @@ export function ApiEndpointsPage() {
         </Card>
       ) : filteredGroups.length === 0 ? (
         <div className={styles.emptyState}>
-          <div className={styles.emptyTitle}>{t('api_endpoints.empty_title')}</div>
-          <div className={styles.emptyDesc}>{t('api_endpoints.empty_desc')}</div>
+          <div className={styles.emptyTitle}>{t('api_endpoints.no_providers')}</div>
+          <div className={styles.emptyDesc}>{t('api_endpoints.no_providers_desc')}</div>
         </div>
       ) : (
         <div className={styles.grid}>
