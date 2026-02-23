@@ -1740,32 +1740,36 @@
     },
     "modelCatalog": {
       "notLoaded": "未加载"
-    },
-    "api_endpoints": {
+    }
+  },
+  "api_endpoints": {
       "title": "API 端点",
-      "subtitle": "查看连接信息并测试支持的模型",
+      "description": "查看各提供商的 API 端点地址、密钥和支持的模型",
       "search_placeholder": "搜索提供商...",
       "refresh": "刷新",
-      "empty_title": "未找到提供商",
-      "empty_desc": "请调整筛选条件或检查服务器连接。",
+      "no_providers": "未找到提供商",
+      "no_providers_desc": "没有匹配搜索条件的 AI 提供商，请调整筛选条件或检查服务器连接。",
       "base_url": "基础 URL",
       "api_key": "API 密钥",
-      "no_keys": "未配置 API 密钥",
+      "no_api_key": "未配置 API 密钥",
       "models": "支持的模型",
-      "model_count": "{{count}} 个模型",
-      "show_more": "显示另外 {{count}} 个",
-      "show_less": "收起",
+      "models_count": "{{count}} 个模型",
+      "show_all_models": "展示全部 {{count}} 个模型",
+      "collapse_models": "收起",
       "no_models": "暂无可用模型",
-      "status_active": "活跃",
-      "status_inactive": "未激活",
+      "active": "活跃",
+      "inactive": "未激活",
+      "copied": "已复制！",
+      "copy": "复制",
+      "copy_model": "点击复制模型名",
+      "model_copied": "已复制模型：{{model}}",
       "show_key": "显示 API 密钥",
       "hide_key": "隐藏 API 密钥",
-      "test_select_placeholder": "选择要测试的模型",
-      "test_btn": "快速测试",
+      "test_select_model": "请选择要测试的模型",
+      "quick_test": "快速测试",
       "testing": "测试中...",
       "test_success": "连接成功！",
-      "code_examples": "代码示例",
-      "fetch_error": "刷新失败"
-    }
+      "test_failed": "连接失败",
+      "code_snippets": "代码示例"
   }
 }

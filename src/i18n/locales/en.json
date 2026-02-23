@@ -1740,32 +1740,36 @@
     },
     "modelCatalog": {
       "notLoaded": "Not loaded"
-    },
-    "api_endpoints": {
+    }
+  },
+  "api_endpoints": {
       "title": "API Endpoints",
-      "subtitle": "View connection details and test supported models",
+      "description": "View API endpoint addresses, keys, and supported models for each provider",
       "search_placeholder": "Search providers...",
       "refresh": "Refresh",
-      "empty_title": "No providers found",
-      "empty_desc": "Try adjusting the filter or check the server connection.",
+      "no_providers": "No Providers Found",
+      "no_providers_desc": "No AI providers matched your search. Try adjusting the filter or check your server connection.",
       "base_url": "Base URL",
       "api_key": "API Key",
-      "no_keys": "No API key configured",
-      "models": "Supported models",
-      "model_count": "{{count}} models",
-      "show_more": "Show {{count}} more",
-      "show_less": "Collapse",
+      "no_api_key": "No API key configured",
+      "models": "Supported Models",
+      "models_count": "{{count}} models",
+      "show_all_models": "Show all {{count}} models",
+      "collapse_models": "Collapse",
       "no_models": "No models available",
-      "status_active": "Active",
-      "status_inactive": "Inactive",
+      "active": "Active",
+      "inactive": "Inactive",
+      "copied": "Copied!",
+      "copy": "Copy",
+      "copy_model": "Click to copy model name",
+      "model_copied": "Copied model: {{model}}",
       "show_key": "Show API key",
       "hide_key": "Hide API key",
-      "test_select_placeholder": "Select a model to test",
-      "test_btn": "Quick test",
+      "test_select_model": "Please select a model to test",
+      "quick_test": "Quick Test",
       "testing": "Testing...",
       "test_success": "Connection successful!",
-      "code_examples": "Code examples",
-      "fetch_error": "Failed to refresh"
-    }
+      "test_failed": "Connection failed",
+      "code_snippets": "Code Snippets"
   }
 }
