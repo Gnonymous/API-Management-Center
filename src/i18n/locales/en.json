@@ -1412,6 +1412,8 @@
     "inactive": "Inactive",
     "copied": "Copied!",
     "copy": "Copy",
+    "copy_model": "Click to copy model name",
+    "model_copied": "Copied model: {{model}}",
     "show_key": "Show API key",
     "hide_key": "Hide API key",
     "code_snippets": "Code Snippets",
