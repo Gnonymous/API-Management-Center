@@ -48,18 +48,21 @@ jobs:
         run: |
           set -euo pipefail
 
-          latest="$(git tag --list 'v*' --sort=-v:refname | head -n 1 || true)"
+          latest=""
+          while IFS= read -r tag; do
+            if [[ "$tag" =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)([-+].*)?$ ]]; then
+              latest="$tag"
+              major="${BASH_REMATCH[1]}"
+              minor="${BASH_REMATCH[2]}"
+              patch="${BASH_REMATCH[3]}"
+              break
+            fi
+          done < <(git tag --list 'v*' --sort=-v:refname)
+
           if [ -z "$latest" ]; then
             major=0
             minor=1
             patch=0
-          else
-            version="${latest#v}"
-            IFS='.' read -r major minor patch <<< "$version"
-            if ! [[ "$major" =~ ^[0-9]+$ && "$minor" =~ ^[0-9]+$ && "$patch" =~ ^[0-9]+$ ]]; then
-              echo "Unsupported tag format: $latest"
-              exit 1
-            fi
           fi
 
           case "${{ steps.bump.outputs.level }}" in
