@@ -15,6 +15,7 @@ import {
 import { configApi, versionApi } from '@/services/api';
 import { useApiKeysForModels } from '@/hooks/useApiKeysForModels';
 import { formatDateTimeValue } from '@/utils/format';
+import { copyToClipboard } from '@/utils/clipboard';
 import { classifyModels } from '@/utils/models';
 import { STORAGE_KEY_AUTH } from '@/utils/constants';
 import { INLINE_LOGO_JPEG } from '@/assets/logoInline';
@@ -43,6 +44,13 @@ const MODEL_CATEGORY_ICONS: Record<string, string | { light: string; dark: strin
   deepseek: iconDeepseek,
   minimax: iconMinimax,
 };
+
+const BREW_UPGRADE_COMMANDS = [
+  'brew update',
+  'brew upgrade cliproxyapi',
+  'brew services restart cliproxyapi',
+];
+const BREW_UPGRADE_COMMAND_TEXT = BREW_UPGRADE_COMMANDS.join('\n');
 
 const parseVersionSegments = (version?: string | null) => {
   if (!version) return null;
@@ -94,6 +102,9 @@ export function SystemPage() {
   const [requestLogTouched, setRequestLogTouched] = useState(false);
   const [requestLogSaving, setRequestLogSaving] = useState(false);
   const [checkingVersion, setCheckingVersion] = useState(false);
+  const [latestVersion, setLatestVersion] = useState('');
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+  const [upgradeCommandCopied, setUpgradeCommandCopied] = useState(false);
 
   const versionTapCount = useRef(0);
   const versionTapTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -249,8 +260,12 @@ export function SystemPage() {
       }
 
       if (comparison > 0) {
+        setLatestVersion(latest);
+        setUpgradeCommandCopied(false);
+        setUpgradeModalOpen(true);
         showNotification(t('system_info.version_update_available', { version: latest }), 'warning');
       } else {
+        setUpgradeModalOpen(false);
         showNotification(t('system_info.version_is_latest'), 'success');
       }
     } catch (error: unknown) {
@@ -262,6 +277,16 @@ export function SystemPage() {
       setCheckingVersion(false);
     }
   }, [auth.serverVersion, showNotification, t]);
+
+  const handleUpgradeCopy = useCallback(async () => {
+    const copied = await copyToClipboard(BREW_UPGRADE_COMMAND_TEXT);
+    if (copied) {
+      setUpgradeCommandCopied(true);
+      showNotification(t('system_info.version_upgrade_copy_success'), 'success');
+      return;
+    }
+    showNotification(t('system_info.version_upgrade_copy_failed'), 'error');
+  }, [showNotification, t]);
 
   useEffect(() => {
     fetchConfig().catch(() => {
@@ -498,6 +523,39 @@ export function SystemPage() {
               setRequestLogTouched(true);
             }}
           />
+        </div>
+      </Modal>
+
+      <Modal
+        open={upgradeModalOpen}
+        onClose={() => setUpgradeModalOpen(false)}
+        title={t('system_info.version_upgrade_modal_title')}
+        width={640}
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setUpgradeModalOpen(false)}>
+              {t('common.close')}
+            </Button>
+            <Button variant="secondary" onClick={() => void handleVersionCheck()} loading={checkingVersion}>
+              {t('system_info.version_upgrade_recheck_button')}
+            </Button>
+            <Button onClick={() => void handleUpgradeCopy()}>
+              {upgradeCommandCopied
+                ? t('system_info.version_upgrade_copied_button')
+                : t('system_info.version_upgrade_button')}
+            </Button>
+          </>
+        }
+      >
+        <div className="update-upgrade-modal">
+          <p className="update-upgrade-desc">
+            {t('system_info.version_upgrade_modal_desc', {
+              current: auth.serverVersion || t('system_info.version_unknown'),
+              latest: latestVersion || t('system_info.version_unknown'),
+            })}
+          </p>
+          <div className="status-badge warning">{t('system_info.version_upgrade_run_hint')}</div>
+          <pre className="update-upgrade-commands">{BREW_UPGRADE_COMMAND_TEXT}</pre>
         </div>
       </Modal>
     </div>
