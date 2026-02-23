@@ -52,7 +52,7 @@
     transition: border-color 0.2s;
 
     &:focus {
-      border-color: var(--primary);
+      border-color: var(--primary-color);
     }
 
     &::placeholder {
@@ -83,7 +83,7 @@
     border-color 0.25s;
 
   &:hover {
-    border-color: var(--primary-muted, var(--primary));
+    border-color: var(--primary-hover, var(--primary-color));
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   }
 }
@@ -112,7 +112,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--primary);
+  background: var(--primary-color);
   color: #fff;
   font-weight: 700;
   font-size: 0.8rem;
@@ -204,9 +204,9 @@
     color 0.15s;
 
   &:hover {
-    background: var(--primary);
+    background: var(--primary-color);
     color: #fff;
-    border-color: var(--primary);
+    border-color: var(--primary-color);
   }
 
   &.copied {
@@ -235,7 +235,7 @@
   cursor: pointer;
 
   &:focus {
-    border-color: var(--primary);
+    border-color: var(--primary-color);
   }
 }
 
@@ -282,18 +282,32 @@
   padding: 0.18rem 0.55rem;
   border-radius: 999px;
   font-size: 0.72rem;
+  font-family: inherit;
   background: var(--bg-tertiary, var(--input-bg));
   border: 1px solid var(--border-color);
   color: var(--text-secondary);
+  cursor: pointer;
   transition:
     background 0.15s,
-    color 0.15s;
+    color 0.15s,
+    border-color 0.15s;
 
   &:hover {
-    background: var(--primary);
+    background: var(--primary-color);
     color: #fff;
-    border-color: var(--primary);
+    border-color: var(--primary-color);
   }
+
+  &:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 1px;
+  }
+}
+
+.modelTagCopied {
+  background: var(--success-color, #10b981);
+  border-color: var(--success-color, #10b981);
+  color: #fff;
 }
 
 .modelName {
@@ -303,7 +317,7 @@
 .showMore {
   align-self: flex-start;
   font-size: 0.75rem;
-  color: var(--primary);
+  color: var(--primary-color);
   background: none;
   border: none;
   cursor: pointer;
@@ -327,7 +341,7 @@
   gap: 0.3rem;
   font-size: 0.78rem;
   font-weight: 600;
-  color: var(--primary);
+  color: var(--primary-color);
   background: none;
   border: none;
   cursor: pointer;
@@ -359,8 +373,8 @@
     border-color 0.15s;
 
   &.active {
-    color: var(--primary);
-    border-bottom-color: var(--primary);
+    color: var(--primary-color);
+    border-bottom-color: var(--primary-color);
   }
 
   &:hover {
@@ -415,7 +429,7 @@
   outline: none;
 
   &:focus {
-    border-color: var(--primary);
+    border-color: var(--primary-color);
   }
 }
 
