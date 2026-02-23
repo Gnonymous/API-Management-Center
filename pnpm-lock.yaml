@@ -17,6 +17,9 @@ importers:
       '@codemirror/search':
         specifier: ^6.6.0
         version: 6.6.0
+      '@codemirror/state':
+        specifier: ^6.5.2
+        version: 6.5.4
       '@codemirror/view':
         specifier: ^6.39.15
         version: 6.39.15
