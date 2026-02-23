@@ -10,6 +10,7 @@ import {
 import { NavLink, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
+import { Modal } from '@/components/ui/Modal';
 import { PageTransition } from '@/components/common/PageTransition';
 import { MainRoutes } from '@/router/MainRoutes';
 import {
@@ -36,6 +37,14 @@ import { versionApi } from '@/services/api';
 import { triggerHeaderRefresh } from '@/hooks/useHeaderRefresh';
 import { LANGUAGE_LABEL_KEYS, LANGUAGE_ORDER } from '@/utils/constants';
 import { isSupportedLanguage } from '@/utils/language';
+import { copyToClipboard } from '@/utils/clipboard';
+
+const BREW_UPGRADE_COMMANDS = [
+  'brew update',
+  'brew upgrade cliproxyapi',
+  'brew services restart cliproxyapi',
+];
+const BREW_UPGRADE_COMMAND_TEXT = BREW_UPGRADE_COMMANDS.join('\n');
 
 const sidebarIcons: Record<string, ReactNode> = {
   dashboard: <IconLayoutDashboard size={18} />,
@@ -195,6 +204,9 @@ export function MainLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [checkingVersion, setCheckingVersion] = useState(false);
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+  const [latestVersion, setLatestVersion] = useState('');
+  const [upgradeCommandCopied, setUpgradeCommandCopied] = useState(false);
   const [languageMenuOpen, setLanguageMenuOpen] = useState(false);
   const [brandExpanded, setBrandExpanded] = useState(true);
   const contentRef = useRef<HTMLDivElement | null>(null);
@@ -459,8 +471,12 @@ export function MainLayout() {
       }
 
       if (comparison > 0) {
+        setLatestVersion(latest);
+        setUpgradeModalOpen(true);
+        setUpgradeCommandCopied(false);
         showNotification(t('system_info.version_update_available', { version: latest }), 'warning');
       } else {
+        setUpgradeModalOpen(false);
         showNotification(t('system_info.version_is_latest'), 'success');
       }
     } catch (error: unknown) {
@@ -471,6 +487,16 @@ export function MainLayout() {
     } finally {
       setCheckingVersion(false);
     }
+  };
+
+  const handleUpgradeCopy = async () => {
+    const copied = await copyToClipboard(BREW_UPGRADE_COMMAND_TEXT);
+    if (copied) {
+      setUpgradeCommandCopied(true);
+      showNotification(t('system_info.version_upgrade_copy_success'), 'success');
+      return;
+    }
+    showNotification(t('system_info.version_upgrade_copy_failed'), 'error');
   };
 
   return (
@@ -614,6 +640,48 @@ export function MainLayout() {
           </main>
         </div>
       </div>
+
+      <Modal
+        open={upgradeModalOpen}
+        onClose={() => setUpgradeModalOpen(false)}
+        title={t('system_info.version_upgrade_modal_title')}
+        width={640}
+        footer={
+          <>
+            <Button
+              variant="secondary"
+              onClick={() => setUpgradeModalOpen(false)}
+            >
+              {t('common.close')}
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={handleVersionCheck}
+              loading={checkingVersion}
+            >
+              {t('system_info.version_upgrade_recheck_button')}
+            </Button>
+            <Button onClick={handleUpgradeCopy}>
+              {upgradeCommandCopied
+                ? t('system_info.version_upgrade_copied_button')
+                : t('system_info.version_upgrade_button')}
+            </Button>
+          </>
+        }
+      >
+        <div className="update-upgrade-modal">
+          <p className="update-upgrade-desc">
+            {t('system_info.version_upgrade_modal_desc', {
+              current: serverVersion || t('system_info.version_unknown'),
+              latest: latestVersion || t('system_info.version_unknown'),
+            })}
+          </p>
+          <div className="status-badge warning">
+            {t('system_info.version_upgrade_run_hint')}
+          </div>
+          <pre className="update-upgrade-commands">{BREW_UPGRADE_COMMAND_TEXT}</pre>
+        </div>
+      </Modal>
     </div>
   );
 }
