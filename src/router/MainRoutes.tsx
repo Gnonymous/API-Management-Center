@@ -21,6 +21,7 @@ import { ConfigPage } from '@/pages/ConfigPage';
 import { LogsPage } from '@/pages/LogsPage';
 import { SystemPage } from '@/pages/SystemPage';
 import { ApiEndpointsPage } from '@/pages/ApiEndpointsPage';
+import { AgentSettingsPage } from '@/pages/AgentSettingsPage';
 
 const mainRoutes = [
   { path: '/', element: <DashboardPage /> },
@@ -78,6 +79,7 @@ const mainRoutes = [
   { path: '/logs', element: <LogsPage /> },
   { path: '/system', element: <SystemPage /> },
   { path: '/endpoints', element: <ApiEndpointsPage /> },
+  { path: '/agent-settings', element: <AgentSettingsPage /> },
   { path: '*', element: <Navigate to="/" replace /> },
 ];
 

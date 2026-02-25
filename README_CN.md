@@ -1,157 +1,141 @@
 # CLI Proxy API 管理中心
 
-用于管理与故障排查 **CLI Proxy API** 的单文件 Web UI（React + TypeScript），通过 **Management API** 完成配置、凭据、日志与统计等管理操作。
+这是一个基于 React + TypeScript 的单文件 Web 管理界面，用于通过 Management API 管理 **CLIProxyAPI**。
 
 [English](README.md)
 
-**主项目**: https://github.com/router-for-me/CLIProxyAPI  
-**示例地址**: https://remote.router-for.me/  
-**最低版本要求**: ≥ 6.8.0（推荐 ≥ 6.8.15）
+## 项目定位
 
-从6.0.19版本开始，Web UI 随主程序一起提供；服务运行后，通过 API 端口上的"/management.html"访问它。
+- 本仓库只包含 Web 管理 UI。
+- 通过 `/v0/management` 读写后端管理接口。
+- 不承担代理转发职责，不直接处理业务流量。
 
-## 这是什么（以及不是什么）
+## 版本与访问
 
-- 本仓库只包含 Web 管理界面本身，通过 CLI Proxy API 的 **Management API**（`/v0/management`）读取/修改配置、上传凭据、查看日志与使用统计。
-- 它 **不是** 代理本体，不参与流量转发。
+- 上游主项目: https://github.com/router-for-me/CLIProxyAPI
+- 本仓库（Fork）: https://github.com/Gnonymous/API-Management-Center
+- 后端最低建议版本: `>= 6.8.0`（推荐 `>= 6.8.15`）
+- 从 CLIProxyAPI `6.0.19` 起，可直接访问:
+  - `http://<host>:<api_port>/management.html`
 
 ## 快速开始
 
-### 方式 A：使用 CLI Proxy API 自带的 Web UI（推荐）
+### 方式 A：使用后端自带页面（推荐）
 
-1. 启动 CLI Proxy API 服务。
-2. 打开：`http://<host>:<api_port>/management.html`
-3. 输入 **管理密钥** 并连接。
+1. 启动 CLIProxyAPI。
+2. 打开 `http://<host>:<api_port>/management.html`。
+3. 输入管理密钥并连接。
 
-页面会根据当前地址自动推断 API 地址，也支持手动修改。
-
-### 方式 B：开发调试
+### 方式 B：本地开发运行
 
 ```bash
 npm install
 npm run dev
 ```
 
-打开 `http://localhost:5173`，然后连接到你的 CLI Proxy API 后端实例。
+浏览器访问 `http://localhost:5173`，再连接你的后端服务。
 
-### 方式 C：构建单文件 HTML
+### 方式 C：构建单文件产物
 
 ```bash
-npm install
 npm run build
 ```
 
-- 构建产物：`dist/index.html`（资源已全部内联）。
-- 在 CLI Proxy API 的发布流程里会重命名为 `management.html`。
-- 本地预览：`npm run preview`
+- 产物: `dist/index.html`（全部资源已内联）
+- 可在发布流程重命名为 `management.html`
+- 本地预览: `npm run preview`
 
-提示：直接用 `file://` 打开 `dist/index.html` 可能遇到浏览器 CORS 限制；更稳妥的方式是用预览/静态服务器打开。
+## 功能概览
 
-## 连接说明
+### 核心管理页面
 
-### API 地址怎么填
+- 仪表盘
+- 基础设置
+- API Keys
+- AI 提供商（Gemini / Codex / Claude / Vertex / OpenAI 兼容 / Ampcode）
+- 认证文件
+- OAuth
+- 配额管理
+- 使用统计
+- 配置编辑（`/config.yaml`）
+- 日志
+- 系统信息
 
-以下格式均可，Web UI 会自动归一化：
+### 新增：API 端点页面（API Endpoints）
 
-- `localhost:8317`
-- `http://192.168.1.10:8317`
-- `https://example.com:8317`
-- `http://example.com:8317/v0/management`（也可填写，后缀会被自动去除）
+面向端点诊断与模型验证，支持：
 
-### 管理密钥（注意：不是 API Keys）
+- 将两类 Provider 合并展示：
+  - Auth File Proxy Provider
+  - Configured API Provider
+- 模型加载并应用别名映射、排除规则过滤。
+- 按 Provider 展示 Base URL、可用 Key、模型列表。
+- 一键生成并复制 `curl` / Python / Node（OpenAI SDK 风格）调用示例。
+- 在浏览器侧执行 `chat/completions` 连通性测试。
 
-管理密钥会以如下方式随请求发送：
+### 新增：本地 Agent 配置页面（Agent Settings）
 
-- `Authorization: Bearer <MANAGEMENT_KEY>`（默认）
+面向本地 Claude Code `settings.json` 快速模型切换，支持：
 
-这与 Web UI 中"API Keys"页面管理的 `api-keys` 不同：后者是代理对外接口（如 OpenAI 兼容接口）给客户端使用的鉴权 key。
+- 使用 File System Access API 读写 `~/.claude/settings.json`。
+- 首次选择文件后保存文件句柄，刷新后自动尝试恢复（并校验权限）。
+- 编辑 4 个模型槽位：
+  - `ANTHROPIC_MODEL`
+  - `ANTHROPIC_DEFAULT_OPUS_MODEL`
+  - `ANTHROPIC_DEFAULT_SONNET_MODEL`
+  - `ANTHROPIC_DEFAULT_HAIKU_MODEL`
+- 先选 Provider，再进入该 Provider 的模型列表选模型。
+- 每个槽位支持模型连通性测试。
+- 保存前可查看 JSON 预览。
+- 仅 Codex 模型显示并支持思考量：
+  - `low` / `medium` / `high` / `xhigh`
 
-### 远程管理
+## 相关项目与参考文档
 
-当你从非 localhost 的浏览器访问时，服务端通常需要开启远程管理（例如 `allow-remote-management: true`）。  
-
-## 功能一览（按页面对应）
-
-- **仪表盘**：连接状态、服务版本/构建时间、关键数量概览、可用模型概览。
-- **基础设置**：调试开关、代理 URL、请求重试、配额回退（达到上限时切换项目或预览模型）、使用统计、请求日志、文件日志、WebSocket 鉴权。
-- **API Keys**：管理代理 `api-keys`（增/改/删）。
-- **AI 提供商**：
-  - Gemini/Codex/Claude/Vertex 配置（Base URL、Headers、代理、模型别名、排除模型、Prefix）。
-  - OpenAI 兼容提供商（多 Key、Header、自助从 `/v1/models` 拉取并导入模型别名、可选浏览器侧 `chat/completions` 测试）。
-  - Ampcode 集成（上游地址/密钥、强制映射、模型映射表）。
-- **认证文件**：上传/下载/删除 JSON 凭据，筛选/搜索/分页，标记 runtime-only；查看单个凭据可用模型（依赖后端支持）；管理 OAuth 排除模型（支持 `*` 通配符）；配置 OAuth 模型别名映射。
-- **OAuth**：对支持的提供商发起 OAuth/设备码流程，轮询状态；可选提交回调 `redirect_url`；包含 iFlow Cookie 导入。
-- **配额管理**：管理 Claude、Antigravity、Codex、Gemini CLI 等提供商的配额上限与使用情况。
-- **使用统计**：按小时/天图表、按 API 与按模型统计、缓存/推理 Token 拆分、RPM/TPM 时间窗、可选本地保存的模型价格用于费用估算。
-- **配置文件**：浏览器内编辑 `/config.yaml`（YAML 高亮 + 搜索），保存/重载。
-- **日志**：增量拉取日志、自动刷新、搜索、隐藏管理端流量、清空日志；下载请求错误日志文件。
-- **系统信息**：快捷链接 + 拉取 `/v1/models` 并分组展示（需要至少一个代理 API Key 才能查询模型）。
+- CLIProxyAPI（上游）: https://github.com/router-for-me/CLIProxyAPI
+- 本仓库 Fork: https://github.com/Gnonymous/API-Management-Center
+- Claude Code 文档（settings 行为参考）: https://docs.anthropic.com/en/docs/claude-code
+- Router-for-me 思考量配置说明: https://help.router-for.me/cn/configuration/thinking.html
+- OpenAI Chat Completions 文档: https://platform.openai.com/docs/api-reference/chat
+- OpenAI Python SDK: https://github.com/openai/openai-python
+- OpenAI Node SDK: https://github.com/openai/openai-node
 
 ## 技术栈
 
-- React 19 + TypeScript 5.9
-- Vite 7（单文件构建）
-- Zustand（状态管理）
-- Axios（HTTP 客户端）
-- react-router-dom v7（HashRouter）
-- Chart.js（数据可视化）
-- CodeMirror 6（YAML 编辑器）
-- SCSS Modules（样式）
-- i18next（国际化）
-
-## 多语言支持
-
-目前支持三种语言：
-
-- 英文 (en)
-- 简体中文 (zh-CN)
-- 俄文 (ru)
-
-界面语言会根据浏览器设置自动切换，也可在页面底部手动切换。
-
-## 浏览器兼容性
-
-- 构建目标：`ES2020`
-- 支持 Chrome、Firefox、Safari、Edge 等现代浏览器
-- 支持移动端响应式布局，可通过手机/平板访问
-
-## 构建与发布说明
-
-- 使用 Vite 输出 **单文件 HTML**（`dist/index.html`），资源全部内联（`vite-plugin-singlefile`）。
-- 打 `vX.Y.Z` 标签会触发 `.github/workflows/release.yml`，发布 `dist/management.html`。
-- 页脚显示的 UI 版本在构建期注入（优先使用环境变量 `VERSION`，否则使用 git tag / `package.json`）。
-
-## 安全提示
-
-- 管理密钥会存入浏览器 `localStorage`，并使用轻量混淆格式（`enc::v1::...`）避免明文；仍应视为敏感信息。
-- 建议使用独立浏览器配置/设备进行管理；开启远程管理时请谨慎评估暴露面。
-
-## 常见问题
-
-- **无法连接 / 401**：确认 API 地址与管理密钥；远程访问可能需要服务端开启远程管理。
-- **反复输错密钥**：服务端可能对远程 IP 进行临时封禁。
-- **日志页面不显示**：需要在“基础设置”里开启“写入日志文件”，导航项才会出现。
-- **功能提示不支持**：多为后端版本较旧或接口未启用/不存在（如：认证文件模型列表、排除模型、日志相关接口）。
-- **OpenAI 提供商测试失败**：测试在浏览器侧执行，会受网络与 CORS 影响；这里失败不一定代表服务端不可用。
+- React 19
+- TypeScript 5.9
+- Vite 7 + `vite-plugin-singlefile`
+- Zustand
+- Axios
+- react-router-dom v7
+- Chart.js
+- CodeMirror 6
+- SCSS Modules
+- i18next
 
 ## 开发命令
 
 ```bash
-npm run dev        # 启动开发服务器
-npm run build      # tsc + Vite 构建
-npm run preview    # 本地预览 dist
-npm run lint       # ESLint（warnings 视为失败）
-npm run format     # Prettier
-npm run type-check # tsc --noEmit
+npm run dev
+npm run build
+npm run preview
+npm run lint
+npm run format
+npm run type-check
 ```
 
-## 贡献
+## 安全说明
 
-欢迎提 Issue 与 PR。建议附上：
+- 管理密钥保存在浏览器本地存储，采用轻量混淆格式（`enc::v1::...`）而非明文。
+- 远程管理请配合网络访问控制，最小化暴露面。
+- 本地 Agent 配置文件可能包含敏感信息，请谨慎处理。
 
-- 复现步骤（服务端版本 + UI 版本）
-- UI 改动截图
-- 验证记录（`npm run lint`、`npm run type-check`）
+## 常见问题
+
+- 登录 `401/403`: 优先检查 API 地址与管理密钥。
+- 页面提示不支持: 常见于后端版本偏旧或对应管理接口未启用。
+- API 端点连通性测试失败: 可能是浏览器网络/CORS 环境导致，不一定等同后端不可用。
+- 刷新后未恢复本地 Agent 文件: 一般是浏览器权限未授予或被重置。
 
 ## 许可证
 
