@@ -4,80 +4,76 @@ A single-file Web UI (React + TypeScript) for operating and troubleshooting the 
 
 [中文文档](README_CN.md)
 
-**Main Project**: https://github.com/router-for-me/CLIProxyAPI  
-**Example URL**: https://remote.router-for.me/  
-**Minimum Required Version**: ≥ 7.1.0 (recommended latest)
+## Project Positioning
 
-Since version 6.0.19, the Web UI ships with the main program; access it via `/management.html` on the API port once the service is running.
+- This repository is the Web management UI only.
+- It reads/writes server-side management resources via `/v0/management`.
+- It is not a request proxy and does not forward user traffic.
 
-## What this is (and isn’t)
+## Version & Access
 
-- This repository is the Web UI only. It talks to the CLI Proxy API **Management API** (`/v0/management`) to read/update config, upload credentials, and view logs.
-- It is **not** a proxy and does not forward traffic.
+- Main project: https://github.com/router-for-me/CLIProxyAPI
+- UI fork (this repo): https://github.com/Gnonymous/API-Management-Center
+- Example URL: https://remote.router-for.me/
+- Minimum backend version: `>= 7.1.0` (recommended latest)
+- Since CLIProxyAPI `6.0.19`, bundled UI is available at:
+  - `http://<host>:<api_port>/management.html`
 
-## Quick start
+## Quick Start
 
-### Option A: Use the Web UI bundled in CLI Proxy API (recommended)
+### A. Use bundled UI (recommended)
 
-1. Start your CLI Proxy API service.
-2. Open: `http://<host>:<api_port>/management.html`
-3. Enter your **management key** and connect.
+1. Start CLIProxyAPI.
+2. Open `http://<host>:<api_port>/management.html`.
+3. Enter your Management Key and connect.
 
-The address is auto-detected from the current page URL; manual override is supported.
-
-### Option B: Run the dev server
+### B. Run local dev UI
 
 ```bash
 npm ci
 npm run dev
 ```
 
-Open `http://localhost:5173`, then connect to your CLI Proxy API backend instance.
+Open `http://localhost:5173` and connect to your running backend.
 
-### Option C: Build a single HTML file
+### C. Build single-file artifact
 
 ```bash
 npm ci
 npm run build
 ```
 
-- Output: `dist/index.html` (all assets are inlined).
-- For CLI Proxy API bundling, the release workflow renames it to `management.html`.
-- To preview locally: `npm run preview`
-
-Tip: opening `dist/index.html` via `file://` may be blocked by browser CORS; serving it (preview/static server) is more reliable.
+- Output: `dist/index.html` (fully inlined).
+- Release flow can rename it to `management.html`.
+- Preview: `npm run preview`.
 
 ## Connecting to the server
 
-### API address
+If you connect from a non-localhost browser, the server must allow remote management (e.g. `allow-remote-management: true`). Check the CLI Proxy API server documentation/config comments for the full authentication rules, server-side limits, and edge cases.
 
-You can enter any of the following; the UI will normalize it:
+## Major Features
 
-- `localhost:8317`
-- `http://192.168.1.10:8317`
-- `https://example.com:8317`
-- `http://example.com:8317/v0/management` (also accepted; the suffix is removed internally)
+### Core management pages
 
-### Management key (not the same as API keys)
+- Dashboard
+- Config Panel
+- AI Providers (Gemini / Codex / Claude / Vertex / OpenAI-compatible / Ampcode)
+- Auth Files
+- OAuth
+- Quota
+- Usage
+- Logs
+- System
+- API Endpoints
+- Agent Settings
 
-The management key is sent with every request as:
-
-- `Authorization: Bearer <MANAGEMENT_KEY>` (default)
-
-This is different from the proxy `api-keys` you manage inside the UI (those are for client requests to the proxy endpoints).
-
-### Remote management
-
-If you connect from a non-localhost browser, the server must allow remote management (e.g. `allow-remote-management: true`).  
-Check the CLI Proxy API server documentation/config comments for the full authentication rules, server-side limits, and edge cases.
-
-## What you can manage (mapped to the UI pages)
+### What you can manage
 
 - **Dashboard**: connection status, server version/build date, quick counts, model availability snapshot.
 - **Config Panel**: visual editor for common `config.yaml` fields, basic settings, proxy `api-keys`, and source editing with YAML highlighting/search plus a save diff preview.
 - **AI Providers**:
   - Gemini/Codex/Claude/Vertex key entries (base URL, headers, proxy, model aliases, excluded models, prefix).
-  - OpenAI-compatible providers (multiple API keys, custom headers, model alias import via `/v1/models`, optional browser-side "chat/completions" test).
+  - OpenAI-compatible providers (multiple API keys, custom headers, model alias import via `/v1/models`, optional browser-side `chat/completions` test).
   - Ampcode integration (upstream URL/key, force mappings, model mapping table).
 - **Auth Files**: upload/download/delete JSON credentials, filter/search/pagination, runtime-only indicators, view supported models per credential (when the server supports it), manage OAuth excluded models (supports `*` wildcards), configure OAuth model alias mappings.
 - **OAuth**: start OAuth/device flows for Codex, Anthropic/Claude, Antigravity, Gemini CLI, Kimi, and xAI/Grok; poll status; submit callback URLs or xAI/Grok displayed codes; import Vertex JSON credentials and iFlow cookies.
@@ -85,17 +81,62 @@ Check the CLI Proxy API server documentation/config comments for the full authen
 - **Logs**: tail logs with incremental polling, auto-refresh, search, hide management traffic, clear logs; download request error log files.
 - **System**: quick links, update check, request logging toggle, local login data cleanup, and fetch `/v1/models` (grouped view). Requires at least one proxy API key to query models.
 
+### API Endpoints page
+
+The API Endpoints page is designed for endpoint-level diagnosis and model verification:
+
+- Unified provider list from two sources:
+  - Auth-file proxy providers
+  - Configured API providers
+- Model loading with alias and excluded-model filtering.
+- Per-provider endpoint details:
+  - Base URL
+  - selected API key
+  - model list
+- One-click code snippets for `curl`, Python, and Node (OpenAI SDK style).
+- Browser-side `chat/completions` connectivity test.
+
+### Local Agent Settings page
+
+The Agent Settings page targets local Claude Code model switching via local `settings.json`:
+
+- Read/write local `~/.claude/settings.json` using File System Access API or backend-assisted file access.
+- Persist selected file handle and restore after refresh (with permission checks).
+- Edit 4 model-related env slots:
+  - `ANTHROPIC_MODEL`
+  - `ANTHROPIC_DEFAULT_OPUS_MODEL`
+  - `ANTHROPIC_DEFAULT_SONNET_MODEL`
+  - `ANTHROPIC_DEFAULT_HAIKU_MODEL`
+- Provider-first workflow:
+  - pick provider first
+  - then pick model from that provider
+- Per-slot model connectivity test.
+- JSON preview before save.
+- Codex-only thinking level support:
+  - `low`, `medium`, `high`, `xhigh`
+  - thinking options are only available when model/provider is confirmed as Codex.
+
+## Related Projects & References
+
+- CLIProxyAPI (upstream): https://github.com/router-for-me/CLIProxyAPI
+- This Web UI fork: https://github.com/Gnonymous/API-Management-Center
+- Claude Code settings reference (`~/.claude/settings.json` behavior): https://docs.anthropic.com/en/docs/claude-code
+- Router-for-me thinking-level reference: https://help.router-for.me/cn/configuration/thinking.html
+- OpenAI Chat Completions reference: https://platform.openai.com/docs/api-reference/chat
+- OpenAI SDK (Python): https://github.com/openai/openai-python
+- OpenAI SDK (Node.js): https://github.com/openai/openai-node
+
 ## Tech Stack
 
 - React 19 + TypeScript 6.0
 - Vite 8 (single-file build)
-- Zustand (state management)
-- Axios (HTTP client)
-- react-router-dom v7 (HashRouter)
-- Motion (animations)
-- CodeMirror 6 (YAML editor)
-- SCSS Modules (styling)
-- i18next (internationalization)
+- Zustand
+- Axios
+- react-router-dom v7
+- Motion
+- CodeMirror 6
+- SCSS Modules
+- i18next
 
 ## Internationalization
 
@@ -120,29 +161,31 @@ The UI language is automatically detected from browser settings and can be manua
 - Tagging `vX.Y.Z` triggers `.github/workflows/release.yml` to publish `dist/management.html`.
 - The UI version shown on the System page is injected at build time (env `VERSION`, git tag, or `package.json` fallback).
 
-## Security notes
-
-- The management key is stored in browser `localStorage` using a lightweight obfuscation format (`enc::v1::...`) to avoid plaintext storage; treat it as sensitive.
-- Use a dedicated browser profile/device for management. Be cautious when enabling remote management and evaluate its exposure surface.
-
-## Troubleshooting
-
-- **Can’t connect / 401**: confirm the API address and management key; remote access may require enabling remote management in the server config.
-- **Repeated auth failures**: the server may temporarily block remote IPs.
-- **Logs page missing**: enable “Logging to file” in Basic Settings; the navigation item is shown only when file logging is enabled.
-- **Some features show “unsupported”**: the backend may be too old or the endpoint is disabled/absent (common for model lists per auth file, excluded models, logs).
-- **OpenAI provider test fails**: the test runs in the browser and depends on network/CORS of the provider endpoint; a failure here does not always mean the server cannot reach it.
-
-## Development
+## Development Commands
 
 ```bash
 npm run dev        # Vite dev server
 npm run build      # tsc + Vite build
 npm run preview    # serve dist locally
-npm run lint       # ESLint (fails on warnings)
+npm run lint       # ESLint
 npm run format     # Prettier
 npm run type-check # tsc --noEmit
 ```
+
+## Security Notes
+
+- The management key is stored in browser `localStorage` using a lightweight obfuscation format (`enc::v1::...`) to avoid plaintext storage; treat it as sensitive.
+- For remote management, use strict network controls and least-exposure deployment.
+- Treat local Agent settings files as sensitive configuration.
+
+## Troubleshooting
+
+- **Can’t connect / 401/403**: confirm the API address and management key; remote access may require enabling remote management in the server config.
+- **Repeated auth failures**: the server may temporarily block remote IPs.
+- **Logs page missing**: enable “Logging to file” in Config Panel; the navigation item is shown only when file logging is enabled.
+- **Some features show “unsupported”**: the backend may be too old or the endpoint is disabled/absent.
+- **Endpoint test fails in browser**: may be caused by browser network/CORS context and does not always mean the server cannot reach the provider.
+- **Local Agent file not restored after refresh**: browser permission may need to be re-granted.
 
 ## Contributing
 
