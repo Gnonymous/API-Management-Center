@@ -23,6 +23,7 @@ import {
   IconSidebarQuota,
   IconSidebarSystem,
   IconSidebarUsage,
+  IconSlidersHorizontal,
   IconZap,
 } from '@/components/ui/icons';
 import { INLINE_LOGO_JPEG } from '@/assets/logoInline';
@@ -58,6 +59,7 @@ const sidebarIcons: Record<string, ReactNode> = {
   logs: <IconSidebarLogs size={18} />,
   system: <IconSidebarSystem size={18} />,
   endpoints: <IconZap size={18} />,
+  agentSettings: <IconSlidersHorizontal size={18} />,
 };
 
 // Header action icons - smaller size for header buttons
@@ -474,6 +476,7 @@ export function MainLayout() {
       : []),
     { path: '/system', label: t('nav.system_info'), icon: sidebarIcons.system },
     { path: '/endpoints', label: t('nav.api_endpoints'), icon: sidebarIcons.endpoints },
+    { path: '/agent-settings', label: t('nav.agent_settings'), icon: sidebarIcons.agentSettings },
   ];
   const navOrder = navItems.map((item) => item.path);
   const getRouteOrder = (pathname: string) => {
