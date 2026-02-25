@@ -1,158 +1,147 @@
 # CLI Proxy API Management Center
 
-A single-file Web UI (React + TypeScript) for operating and troubleshooting the **CLI Proxy API** via its **Management API** (config, credentials, logs, and usage).
+A single-file React + TypeScript Web UI for operating **CLIProxyAPI** through its Management API.
 
 [中文文档](README_CN.md)
 
-**Main Project**: https://github.com/router-for-me/CLIProxyAPI  
-**Example URL**: https://remote.router-for.me/  
-**Minimum Required Version**: ≥ 6.8.0 (recommended ≥ 6.8.15)
+## Project Positioning
 
-Since version 6.0.19, the Web UI ships with the main program; access it via `/management.html` on the API port once the service is running.
+- This repository is the Web management UI only.
+- It reads/writes server-side management resources via `/v0/management`.
+- It is not a request proxy and does not forward user traffic.
 
-## What this is (and isn’t)
+## Version & Access
 
-- This repository is the Web UI only. It talks to the CLI Proxy API **Management API** (`/v0/management`) to read/update config, upload credentials, view logs, and inspect usage.
-- It is **not** a proxy and does not forward traffic.
+- Main project: https://github.com/router-for-me/CLIProxyAPI
+- UI fork (this repo): https://github.com/Gnonymous/API-Management-Center
+- Minimum backend version: `>= 6.8.0` (recommended `>= 6.8.15`)
+- Since CLIProxyAPI `6.0.19`, bundled UI is available at:
+  - `http://<host>:<api_port>/management.html`
 
-## Quick start
+## Quick Start
 
-### Option A: Use the Web UI bundled in CLI Proxy API (recommended)
+### A. Use bundled UI (recommended)
 
-1. Start your CLI Proxy API service.
-2. Open: `http://<host>:<api_port>/management.html`
-3. Enter your **management key** and connect.
+1. Start CLIProxyAPI.
+2. Open `http://<host>:<api_port>/management.html`.
+3. Enter your Management Key and connect.
 
-The address is auto-detected from the current page URL; manual override is supported.
-
-### Option B: Run the dev server
+### B. Run local dev UI
 
 ```bash
 npm install
 npm run dev
 ```
 
-Open `http://localhost:5173`, then connect to your CLI Proxy API backend instance.
+Open `http://localhost:5173` and connect to your running backend.
 
-### Option C: Build a single HTML file
+### C. Build single-file artifact
 
 ```bash
-npm install
 npm run build
 ```
 
-- Output: `dist/index.html` (all assets are inlined).
-- For CLI Proxy API bundling, the release workflow renames it to `management.html`.
-- To preview locally: `npm run preview`
+- Output: `dist/index.html` (fully inlined).
+- Release flow can rename it to `management.html`.
+- Preview: `npm run preview`.
 
-Tip: opening `dist/index.html` via `file://` may be blocked by browser CORS; serving it (preview/static server) is more reliable.
+## Major Features
 
-## Connecting to the server
+### Core management pages
 
-### API address
+- Dashboard
+- Basic Settings
+- API Keys
+- AI Providers (Gemini / Codex / Claude / Vertex / OpenAI-compatible / Ampcode)
+- Auth Files
+- OAuth
+- Quota
+- Usage
+- Config editor (`/config.yaml`)
+- Logs
+- System
 
-You can enter any of the following; the UI will normalize it:
+### New: API Endpoints page
 
-- `localhost:8317`
-- `http://192.168.1.10:8317`
-- `https://example.com:8317`
-- `http://example.com:8317/v0/management` (also accepted; the suffix is removed internally)
+The API Endpoints page is designed for endpoint-level diagnosis and model verification:
 
-### Management key (not the same as API keys)
+- Unified provider list from two sources:
+  - Auth-file proxy providers
+  - Configured API providers
+- Model loading with alias and excluded-model filtering.
+- Per-provider endpoint details:
+  - Base URL
+  - selected API key
+  - model list
+- One-click code snippets for `curl`, Python, and Node (OpenAI SDK style).
+- Browser-side `chat/completions` connectivity test.
 
-The management key is sent with every request as:
+### New: Local Agent Settings page
 
-- `Authorization: Bearer <MANAGEMENT_KEY>` (default)
+The Agent Settings page targets local Claude Code model switching via local `settings.json`:
 
-This is different from the proxy `api-keys` you manage inside the UI (those are for client requests to the proxy endpoints).
+- Read/write local `~/.claude/settings.json` using File System Access API.
+- Persist selected file handle and restore after refresh (with permission checks).
+- Edit 4 model-related env slots:
+  - `ANTHROPIC_MODEL`
+  - `ANTHROPIC_DEFAULT_OPUS_MODEL`
+  - `ANTHROPIC_DEFAULT_SONNET_MODEL`
+  - `ANTHROPIC_DEFAULT_HAIKU_MODEL`
+- Provider-first workflow:
+  - pick provider first
+  - then pick model from that provider
+- Per-slot model connectivity test.
+- JSON preview before save.
+- Codex-only thinking level support:
+  - `low`, `medium`, `high`, `xhigh`
+  - thinking options are only available when model/provider is confirmed as Codex.
 
-### Remote management
+## Related Projects & References
 
-If you connect from a non-localhost browser, the server must allow remote management (e.g. `allow-remote-management: true`).  
-See `api.md` for the full authentication rules, server-side limits, and edge cases.
-
-## What you can manage (mapped to the UI pages)
-
-- **Dashboard**: connection status, server version/build date, quick counts, model availability snapshot.
-- **Basic Settings**: debug, proxy URL, request retry, quota fallback (switch project or preview models when limits reached), usage statistics, request logging, file logging, WebSocket auth.
-- **API Keys**: manage proxy `api-keys` (add/edit/delete).
-- **AI Providers**:
-  - Gemini/Codex/Claude/Vertex key entries (base URL, headers, proxy, model aliases, excluded models, prefix).
-  - OpenAI-compatible providers (multiple API keys, custom headers, model alias import via `/v1/models`, optional browser-side "chat/completions" test).
-  - Ampcode integration (upstream URL/key, force mappings, model mapping table).
-- **Auth Files**: upload/download/delete JSON credentials, filter/search/pagination, runtime-only indicators, view supported models per credential (when the server supports it), manage OAuth excluded models (supports `*` wildcards), configure OAuth model alias mappings.
-- **OAuth**: start OAuth/device flows for supported providers, poll status, optionally submit callback `redirect_url`; includes iFlow cookie import.
-- **Quota Management**: manage quota limits and usage for Claude, Antigravity, Codex, Gemini CLI, and other providers.
-- **Usage**: requests/tokens charts (hour/day), per-API & per-model breakdown, cached/reasoning token breakdown, RPM/TPM window, optional cost estimation with locally-saved model pricing.
-- **Config**: edit `/config.yaml` in-browser with YAML highlighting + search, then save/reload.
-- **Logs**: tail logs with incremental polling, auto-refresh, search, hide management traffic, clear logs; download request error log files.
-- **System**: quick links + fetch `/v1/models` (grouped view). Requires at least one proxy API key to query models.
+- CLIProxyAPI (upstream): https://github.com/router-for-me/CLIProxyAPI
+- This Web UI fork: https://github.com/Gnonymous/API-Management-Center
+- Claude Code settings reference (`~/.claude/settings.json` behavior): https://docs.anthropic.com/en/docs/claude-code
+- Router-for-me thinking-level reference: https://help.router-for.me/cn/configuration/thinking.html
+- OpenAI Chat Completions reference: https://platform.openai.com/docs/api-reference/chat
+- OpenAI SDK (Python): https://github.com/openai/openai-python
+- OpenAI SDK (Node.js): https://github.com/openai/openai-node
 
 ## Tech Stack
 
-- React 19 + TypeScript 5.9
-- Vite 7 (single-file build)
-- Zustand (state management)
-- Axios (HTTP client)
-- react-router-dom v7 (HashRouter)
-- Chart.js (data visualization)
-- CodeMirror 6 (YAML editor)
-- SCSS Modules (styling)
-- i18next (internationalization)
+- React 19
+- TypeScript 5.9
+- Vite 7 + `vite-plugin-singlefile`
+- Zustand
+- Axios
+- react-router-dom v7
+- Chart.js
+- CodeMirror 6
+- SCSS Modules
+- i18next
 
-## Internationalization
+## Development Commands
 
-Currently supports three languages:
+```bash
+npm run dev
+npm run build
+npm run preview
+npm run lint
+npm run format
+npm run type-check
+```
 
-- English (en)
-- Simplified Chinese (zh-CN)
-- Russian (ru)
+## Security Notes
 
-The UI language is automatically detected from browser settings and can be manually switched at the bottom of the page.
-
-## Browser Compatibility
-
-- Build target: `ES2020`
-- Supports modern browsers (Chrome, Firefox, Safari, Edge)
-- Responsive layout for mobile and tablet access
-
-## Build & release notes
-
-- Vite produces a **single HTML** output (`dist/index.html`) with all assets inlined (via `vite-plugin-singlefile`).
-- Tagging `vX.Y.Z` triggers `.github/workflows/release.yml` to publish `dist/management.html`.
-- The UI version shown in the footer is injected at build time (env `VERSION`, git tag, or `package.json` fallback).
-
-## Security notes
-
-- The management key is stored in browser `localStorage` using a lightweight obfuscation format (`enc::v1::...`) to avoid plaintext storage; treat it as sensitive.
-- Use a dedicated browser profile/device for management. Be cautious when enabling remote management and evaluate its exposure surface.
+- Management key is stored in browser local storage with lightweight obfuscation (`enc::v1::...`), not plaintext.
+- For remote management, use strict network controls and least-exposure deployment.
+- Treat local Agent settings files as sensitive configuration.
 
 ## Troubleshooting
 
-- **Can’t connect / 401**: confirm the API address and management key; remote access may require enabling remote management in the server config.
-- **Repeated auth failures**: the server may temporarily block remote IPs.
-- **Logs page missing**: enable “Logging to file” in Basic Settings; the navigation item is shown only when file logging is enabled.
-- **Some features show “unsupported”**: the backend may be too old or the endpoint is disabled/absent (common for model lists per auth file, excluded models, logs).
-- **OpenAI provider test fails**: the test runs in the browser and depends on network/CORS of the provider endpoint; a failure here does not always mean the server cannot reach it.
-
-## Development
-
-```bash
-npm run dev        # Vite dev server
-npm run build      # tsc + Vite build
-npm run preview    # serve dist locally
-npm run lint       # ESLint (fails on warnings)
-npm run format     # Prettier
-npm run type-check # tsc --noEmit
-```
-
-## Contributing
-
-Issues and PRs are welcome. Please include:
-
-- Reproduction steps (server version + UI version)
-- Screenshots for UI changes
-- Verification notes (`npm run lint`, `npm run type-check`)
+- `401/403` on login: verify API base and Management Key.
+- Features marked unsupported: backend endpoint may be missing or backend version too old.
+- Endpoint test fails in browser: may be caused by network/CORS in browser context.
+- Local Agent file not restored after refresh: browser permission may need to be re-granted.
 
 ## License
 

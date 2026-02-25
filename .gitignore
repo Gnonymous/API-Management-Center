@@ -19,7 +19,8 @@ node_modules
 dist
 dist-ssr
 *.local
-skills
+.codex
+.gemini
 
 # Editor directories and files
 settings.local.json
