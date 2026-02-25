@@ -277,6 +277,19 @@
   &:focus {
     border-color: var(--primary-color);
   }
+
+  // Keep native dropdown options readable in dark theme.
+  // Some browsers render a light popup while inheriting light text color.
+  color-scheme: light;
+
+  option {
+    color: #1f2328;
+    background: #ffffff;
+  }
+
+  option[value=''] {
+    color: #6b7280;
+  }
 }
 
 /* ── Models section ── */
@@ -516,6 +529,18 @@
 
   &:focus {
     border-color: var(--primary-color);
+  }
+
+  // Keep native dropdown options readable in dark theme.
+  color-scheme: light;
+
+  option {
+    color: #1f2328;
+    background: #ffffff;
+  }
+
+  option[value=''] {
+    color: #6b7280;
   }
 }
 

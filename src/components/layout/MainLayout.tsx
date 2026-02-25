@@ -30,6 +30,7 @@ import {
   IconSidebarStore,
   IconSidebarSystem,
   IconChevronDown,
+  IconSlidersHorizontal,
   IconZap,
 } from '@/components/ui/icons';
 import { INLINE_LOGO_JPEG } from '@/assets/logoInline';
@@ -67,6 +68,7 @@ const sidebarIcons: Record<string, ReactNode> = {
   logs: <IconSidebarLogs size={18} />,
   system: <IconSidebarSystem size={18} />,
   endpoints: <IconZap size={18} />,
+  agentSettings: <IconSlidersHorizontal size={18} />,
 };
 
 interface SidebarNavLinkItem {
@@ -623,6 +625,12 @@ export function MainLayout() {
           labelKey: 'nav.api_endpoints',
           metaKey: 'nav_meta.api_endpoints',
           icon: sidebarIcons.endpoints,
+        },
+        {
+          path: '/agent-settings',
+          label: t('agent_settings.title', { defaultValue: 'Agent Settings' }),
+          meta: t('agent_settings.description', { defaultValue: 'Local agent configuration' }),
+          icon: sidebarIcons.agentSettings,
         },
         {
           path: '/auth-files',

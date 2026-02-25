@@ -13,6 +13,7 @@ import { ConfigPage } from '@/features/config/ConfigPage';
 import { LogsPage } from '@/pages/LogsPage';
 import { SystemPage } from '@/pages/SystemPage';
 import { ApiEndpointsPage } from '@/pages/ApiEndpointsPage';
+import { AgentSettingsPage } from '@/pages/AgentSettingsPage';
 import { useAuthStore } from '@/stores';
 
 const createMainRoutes = (supportsPlugin: boolean) => [
@@ -45,6 +46,7 @@ const createMainRoutes = (supportsPlugin: boolean) => [
   { path: '/logs', element: <LogsPage /> },
   { path: '/system', element: <SystemPage /> },
   { path: '/endpoints', element: <ApiEndpointsPage /> },
+  { path: '/agent-settings', element: <AgentSettingsPage /> },
   { path: '*', element: <Navigate to="/" replace /> },
 ];
 
