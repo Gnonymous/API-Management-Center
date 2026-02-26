@@ -31,6 +31,7 @@ import styles from './ApiEndpointsPage.module.scss';
 
 const CODE_LANGUAGES = ['curl', 'python', 'node'] as const;
 type CodeLang = (typeof CODE_LANGUAGES)[number];
+const FIXED_API_BASE_URL = 'http://127.0.0.1:8317/v1';
 
 type ProviderIconKind = 'openai' | 'claude' | 'gemini' | 'antigravity';
 
@@ -57,8 +58,8 @@ const maskKey = (key: string): string => {
   return `${key.slice(0, 5)}${'•'.repeat(Math.min(key.length - 8, 16))}${key.slice(-4)}`;
 };
 
-const buildClientBaseUrl = (baseUrl: string): string => {
-  const normalized = normalizeApiBase(baseUrl);
+const buildClientBaseUrl = (): string => {
+  const normalized = normalizeApiBase(FIXED_API_BASE_URL);
   if (!normalized) return '';
 
   const trimmed = normalized.replace(/\/+$/g, '');
@@ -69,8 +70,8 @@ const buildClientBaseUrl = (baseUrl: string): string => {
   return `${trimmed}/v1`;
 };
 
-const buildChatCompletionsUrl = (baseUrl: string): string => {
-  const clientBaseUrl = buildClientBaseUrl(baseUrl);
+const buildChatCompletionsUrl = (): string => {
+  const clientBaseUrl = buildClientBaseUrl();
   if (!clientBaseUrl) return '';
   return `${clientBaseUrl}/chat/completions`;
 };
@@ -178,12 +179,9 @@ function ProviderCard({
   const safeSelectedKeyIdx = clampKeyIndex(selectedKeyIdx, provider.keyOptions.length);
   const selectedKey = provider.keyOptions[safeSelectedKeyIdx];
   const currentKey = selectedKey?.apiKey ?? '';
-  const unifiedBaseUrl = normalizeApiBase(provider.baseUrl);
-  const displayBaseUrl = unifiedBaseUrl
-    ? unifiedBaseUrl.replace(/\/v1\/chat\/completions$/i, '').replace(/\/v1$/i, '')
-    : '';
-  const chatCompletionsUrl = buildChatCompletionsUrl(provider.baseUrl);
-  const clientBaseUrl = buildClientBaseUrl(provider.baseUrl);
+  const displayBaseUrl = FIXED_API_BASE_URL;
+  const chatCompletionsUrl = buildChatCompletionsUrl();
+  const clientBaseUrl = buildClientBaseUrl();
   const realKeyOptions = provider.realKeyOptions ?? [];
   const safeRealKeyIdx = clampKeyIndex(realKeyIdx, realKeyOptions.length);
   const currentRealKey = realKeyOptions[safeRealKeyIdx]?.apiKey ?? '';
@@ -282,12 +280,12 @@ function ProviderCard({
     const model = testModel || sampleModel;
 
     if (codeLang === 'curl') {
-      return generateCurl(chatCompletionsUrl || 'https://example.com/v1/chat/completions', key, model);
+      return generateCurl(chatCompletionsUrl || `${FIXED_API_BASE_URL}/chat/completions`, key, model);
     }
     if (codeLang === 'python') {
-      return generatePython(clientBaseUrl || 'https://example.com/v1', key, model);
+      return generatePython(clientBaseUrl || FIXED_API_BASE_URL, key, model);
     }
-    return generateNode(clientBaseUrl || 'https://example.com/v1', key, model);
+    return generateNode(clientBaseUrl || FIXED_API_BASE_URL, key, model);
   }, [chatCompletionsUrl, clientBaseUrl, codeLang, currentKey, sampleModel, testModel]);
 
   return (
