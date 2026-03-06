@@ -5,11 +5,13 @@ import type {
   PayloadParamEntry,
   PayloadParamValueType,
   PayloadRule,
+  VisualApiKeyItem,
   VisualConfigValues,
   VisualConfigValidationErrors,
   PayloadParamValidationErrorCode,
 } from '@/types/visualConfig';
-import { DEFAULT_VISUAL_VALUES } from '@/types/visualConfig';
+import { DEFAULT_VISUAL_VALUES, makeClientId } from '@/types/visualConfig';
+import { getStoredApiKeyName } from '@/utils/apiKeyNames';
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   if (value === null || typeof value !== 'object' || Array.isArray(value)) return null;
@@ -36,15 +38,44 @@ function extractApiKeyValue(raw: unknown): string | null {
   return null;
 }
 
-function parseApiKeysText(raw: unknown): string {
-  if (!Array.isArray(raw)) return '';
+function extractApiKeyName(raw: unknown): string {
+  const record = asRecord(raw);
+  if (!record) return '';
 
-  const keys: string[] = [];
-  for (const item of raw) {
-    const key = extractApiKeyValue(item);
-    if (key) keys.push(key);
+  const candidates = [
+    record.name,
+    record['display-name'],
+    record.displayName,
+    record.label,
+    record.title,
+  ];
+
+  for (const candidate of candidates) {
+    if (typeof candidate === 'string') {
+      const trimmed = candidate.trim();
+      if (trimmed) return trimmed;
+    }
   }
-  return keys.join('\n');
+
+  return '';
+}
+
+function parseApiKeys(raw: unknown): VisualApiKeyItem[] {
+  if (!Array.isArray(raw)) return [];
+
+  const keys: VisualApiKeyItem[] = [];
+  for (const item of raw) {
+    const apiKey = extractApiKeyValue(item);
+    if (!apiKey) continue;
+
+    keys.push({
+      id: makeClientId(),
+      name: extractApiKeyName(item) || getStoredApiKeyName(apiKey),
+      apiKey,
+    });
+  }
+
+  return keys;
 }
 
 function replaceApiKeyValue(entry: unknown, apiKey: string): unknown {
@@ -60,10 +91,11 @@ function replaceApiKeyValue(entry: unknown, apiKey: string): unknown {
 }
 
 function buildApiKeyEntries(
-  apiKeys: string[],
+  apiKeys: VisualApiKeyItem[],
   metadata: ApiKeysStorageMetadata
 ): Array<string | Record<string, unknown>> {
-  return apiKeys.map((apiKey, index) => {
+  return apiKeys.map((item, index) => {
+    const apiKey = String(item.apiKey ?? '').trim();
     const originalEntry = metadata.originalEntries[index];
     if (metadata.entryMode === 'object') {
       const replaced = replaceApiKeyValue(originalEntry, apiKey);
@@ -76,7 +108,7 @@ function buildApiKeyEntries(
 }
 
 function resolveApiKeysStorage(parsed: Record<string, unknown>): {
-  text: string;
+  items: VisualApiKeyItem[];
   metadata: ApiKeysStorageMetadata;
 } {
   const legacyEntries = Array.isArray(parsed['api-keys']) ? parsed['api-keys'] : [];
@@ -95,7 +127,7 @@ function resolveApiKeysStorage(parsed: Record<string, unknown>): {
       : 'api-keys';
 
     return {
-      text: parseApiKeysText(providerEntries),
+      items: parseApiKeys(providerEntries),
       metadata: {
         source: 'auth-provider',
         providerListKey,
@@ -110,7 +142,7 @@ function resolveApiKeysStorage(parsed: Record<string, unknown>): {
   }
 
   return {
-    text: parseApiKeysText(legacyEntries),
+    items: parseApiKeys(legacyEntries),
     metadata: {
       source: 'legacy',
       entryMode: legacyEntries.some((entry) => Boolean(asRecord(entry))) ? 'object' : 'string',
@@ -493,7 +525,7 @@ export function useVisualConfig() {
               : '',
 
         authDir: typeof parsed['auth-dir'] === 'string' ? parsed['auth-dir'] : '',
-        apiKeysText: apiKeysStorage.text,
+        apiKeys: apiKeysStorage.items,
 
         debug: Boolean(parsed.debug),
         commercialMode: Boolean(parsed['commercial-mode']),
@@ -587,11 +619,8 @@ export function useVisualConfig() {
         }
 
         setStringInDoc(doc, ['auth-dir'], values.authDir);
-        if (values.apiKeysText !== baselineValues.apiKeysText) {
-          const apiKeys = values.apiKeysText
-            .split('\n')
-            .map((key) => key.trim())
-            .filter(Boolean);
+        if (JSON.stringify(values.apiKeys) !== JSON.stringify(baselineValues.apiKeys)) {
+          const apiKeys = values.apiKeys.filter((item) => String(item.apiKey ?? '').trim());
           const apiKeyEntries = buildApiKeyEntries(apiKeys, apiKeysStorageMetadata);
 
           if (apiKeysStorageMetadata.source === 'auth-provider') {
@@ -614,7 +643,10 @@ export function useVisualConfig() {
 
             if (apiKeysStorageMetadata.syncLegacy) {
               if (apiKeys.length > 0) {
-                doc.setIn(['api-keys'], apiKeys);
+                doc.setIn(
+                  ['api-keys'],
+                  apiKeys.map((item) => String(item.apiKey ?? '').trim()).filter(Boolean)
+                );
               } else if (docHas(doc, ['api-keys'])) {
                 doc.deleteIn(['api-keys']);
               }

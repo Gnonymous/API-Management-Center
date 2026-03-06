@@ -107,7 +107,7 @@ export function VisualConfigEditor({ values, validationErrors, disabled = false,
     validationErrors?.['streaming.nonstreamKeepaliveInterval']
   );
 
-  const handleApiKeysTextChange = useCallback((apiKeysText: string) => onChange({ apiKeysText }), [onChange]);
+  const handleApiKeysChange = useCallback((apiKeys: VisualConfigValues['apiKeys']) => onChange({ apiKeys }), [onChange]);
   const handlePayloadDefaultRulesChange = useCallback(
     (payloadDefaultRules: PayloadRule[]) => onChange({ payloadDefaultRules }),
     [onChange]
@@ -224,9 +224,9 @@ export function VisualConfigEditor({ values, validationErrors, disabled = false,
             hint={t('config_management.visual.sections.auth.auth_dir_hint')}
           />
           <ApiKeysCardEditor
-            value={values.apiKeysText}
+            value={values.apiKeys}
             disabled={disabled}
-            onChange={handleApiKeysTextChange}
+            onChange={handleApiKeysChange}
           />
         </div>
       </ConfigSection>
