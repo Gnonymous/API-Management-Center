@@ -120,6 +120,15 @@ const clampKeyIndex = (index: number, keyCount: number): number => {
   return Math.min(Math.max(index, 0), keyCount - 1);
 };
 
+const formatKeyOptionDisplay = (
+  keyOption: EndpointProviderEntry['keyOptions'][number] | undefined,
+  visible: boolean
+): string => {
+  if (!keyOption?.apiKey) return '';
+  if (!visible) return keyOption.label;
+  return keyOption.name ? `${keyOption.name} · ${keyOption.apiKey}` : keyOption.apiKey;
+};
+
 const buildSelectionMap = (
   entries: EndpointProviderEntry[],
   previous: Record<string, number>
@@ -179,6 +188,7 @@ function ProviderCard({
   const safeSelectedKeyIdx = clampKeyIndex(selectedKeyIdx, provider.keyOptions.length);
   const selectedKey = provider.keyOptions[safeSelectedKeyIdx];
   const currentKey = selectedKey?.apiKey ?? '';
+  const currentKeyDisplay = formatKeyOptionDisplay(selectedKey, keyVisible);
   const displayBaseUrl = FIXED_API_BASE_URL;
   const chatCompletionsUrl = buildChatCompletionsUrl();
   const clientBaseUrl = buildClientBaseUrl();
@@ -342,17 +352,13 @@ function ProviderCard({
               >
                 {provider.keyOptions.map((keyOption, index) => (
                   <option key={`${provider.id}:key:${index}`} value={index}>
-                    {keyVisible ? keyOption.apiKey : maskKey(keyOption.apiKey)}
+                    {formatKeyOptionDisplay(keyOption, keyVisible)}
                   </option>
                 ))}
               </select>
             ) : (
               <span className={styles.monoValue}>
-                {currentKey
-                  ? keyVisible
-                    ? currentKey
-                    : maskKey(currentKey)
-                  : t('api_endpoints.no_api_key')}
+                {currentKey ? currentKeyDisplay : t('api_endpoints.no_api_key')}
               </span>
             )}
 

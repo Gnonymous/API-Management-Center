@@ -13,6 +13,7 @@ import type {
   PayloadParamValidationErrorCode,
   PayloadParamValueType,
   PayloadRule,
+  VisualApiKeyItem,
 } from '@/types/visualConfig';
 import { makeClientId } from '@/types/visualConfig';
 import {
@@ -36,32 +37,20 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
   disabled,
   onChange,
 }: {
-  value: string;
+  value: VisualApiKeyItem[];
   disabled?: boolean;
-  onChange: (nextValue: string) => void;
+  onChange: (nextValue: VisualApiKeyItem[]) => void;
 }) {
   const { t } = useTranslation();
   const showNotification = useNotificationStore((state) => state.showNotification);
-  const apiKeys = useMemo(
-    () =>
-      value
-        .split('\n')
-        .map((key) => key.trim())
-        .filter(Boolean),
-    [value]
-  );
-  const [apiKeyIds, setApiKeyIds] = useState(() => apiKeys.map(() => makeClientId()));
-  const renderApiKeyIds = useMemo(() => {
-    if (apiKeyIds.length === apiKeys.length) return apiKeyIds;
-    if (apiKeyIds.length > apiKeys.length) return apiKeyIds.slice(0, apiKeys.length);
-    return [...apiKeyIds, ...Array.from({ length: apiKeys.length - apiKeyIds.length }, () => makeClientId())];
-  }, [apiKeyIds, apiKeys.length]);
+  const apiKeys = useMemo(() => value, [value]);
 
   const apiKeyInputId = useId();
   const apiKeyHintId = `${apiKeyInputId}-hint`;
   const apiKeyErrorId = `${apiKeyInputId}-error`;
   const [modalOpen, setModalOpen] = useState(false);
-  const [editingApiKeyId, setEditingApiKeyId] = useState<string | null>(null);
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [nameValue, setNameValue] = useState('');
   const [inputValue, setInputValue] = useState('');
   const [formError, setFormError] = useState('');
 
@@ -73,39 +62,40 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
   }
 
   const openAddModal = () => {
-    setEditingApiKeyId(null);
+    setEditingIndex(null);
+    setNameValue('');
     setInputValue('');
     setFormError('');
     setModalOpen(true);
   };
 
-  const openEditModal = (apiKeyId: string) => {
-    const editingIndex = renderApiKeyIds.findIndex((id) => id === apiKeyId);
-    setEditingApiKeyId(apiKeyId);
-    setInputValue(apiKeys[editingIndex] ?? '');
+  const openEditModal = (index: number) => {
+    const current = apiKeys[index];
+    setEditingIndex(index);
+    setNameValue(current?.name ?? '');
+    setInputValue(current?.apiKey ?? '');
     setFormError('');
     setModalOpen(true);
   };
 
   const closeModal = () => {
     setModalOpen(false);
+    setNameValue('');
     setInputValue('');
-    setEditingApiKeyId(null);
+    setEditingIndex(null);
     setFormError('');
   };
 
-  const updateApiKeys = (nextKeys: string[]) => {
-    onChange(nextKeys.join('\n'));
-  };
-
-  const handleDelete = (apiKeyId: string) => {
-    const index = renderApiKeyIds.findIndex((id) => id === apiKeyId);
-    if (index < 0) return;
-    setApiKeyIds(renderApiKeyIds.filter((id) => id !== apiKeyId));
+  const handleDelete = (index: number) => {
     updateApiKeys(apiKeys.filter((_, i) => i !== index));
   };
 
+  const updateApiKeys = (nextKeys: VisualApiKeyItem[]) => {
+    onChange(nextKeys);
+  };
+
   const handleSave = () => {
+    const trimmedName = nameValue.trim();
     const trimmed = inputValue.trim();
     if (!trimmed) {
       setFormError(t('config_management.visual.api_keys.error_empty'));
@@ -116,14 +106,14 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
       return;
     }
 
-    const editingIndex = editingApiKeyId ? renderApiKeyIds.findIndex((id) => id === editingApiKeyId) : -1;
     const nextKeys =
-      editingApiKeyId === null
-        ? [...apiKeys, trimmed]
-        : apiKeys.map((key, idx) => (idx === editingIndex ? trimmed : key));
-    if (editingApiKeyId === null) {
-      setApiKeyIds([...renderApiKeyIds, makeClientId()]);
-    }
+      editingIndex === null
+        ? [...apiKeys, { id: makeClientId(), name: trimmedName, apiKey: trimmed }]
+        : apiKeys.map((item, idx) =>
+            idx === editingIndex
+              ? { ...item, name: trimmedName, apiKey: trimmed }
+              : item
+          );
     updateApiKeys(nextKeys);
     closeModal();
   };
@@ -165,20 +155,22 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
       ) : (
         <div className="item-list" style={{ marginTop: 4 }}>
           {apiKeys.map((key, index) => (
-            <div key={renderApiKeyIds[index] ?? `${key}-${index}`} className="item-row">
+            <div key={key.id || `${key.apiKey}-${index}`} className="item-row">
               <div className="item-meta">
                 <div className="pill">#{index + 1}</div>
-                <div className="item-title">{t('config_management.visual.api_keys.input_label')}</div>
-                <div className="item-subtitle">{maskApiKey(String(key || ''))}</div>
+                <div className="item-title">
+                  {key.name || t('config_management.visual.api_keys.default_name', { index: index + 1 })}
+                </div>
+                <div className="item-subtitle">{maskApiKey(String(key.apiKey || ''))}</div>
               </div>
               <div className="item-actions">
-                <Button variant="secondary" size="sm" onClick={() => handleCopy(key)} disabled={disabled}>
+                <Button variant="secondary" size="sm" onClick={() => handleCopy(key.apiKey)} disabled={disabled}>
                   {t('common.copy')}
                 </Button>
                 <Button
                   variant="secondary"
                   size="sm"
-                  onClick={() => openEditModal(renderApiKeyIds[index] ?? '')}
+                  onClick={() => openEditModal(index)}
                   disabled={disabled}
                 >
                   {t('config_management.visual.common.edit')}
@@ -186,7 +178,7 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
                 <Button
                   variant="danger"
                   size="sm"
-                  onClick={() => handleDelete(renderApiKeyIds[index] ?? '')}
+                  onClick={() => handleDelete(index)}
                   disabled={disabled}
                 >
                   {t('config_management.visual.common.delete')}
@@ -202,18 +194,30 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
       <Modal
         open={modalOpen}
         onClose={closeModal}
-        title={editingApiKeyId !== null ? t('config_management.visual.api_keys.edit_title') : t('config_management.visual.api_keys.add_title')}
+        title={editingIndex !== null ? t('config_management.visual.api_keys.edit_title') : t('config_management.visual.api_keys.add_title')}
         footer={
           <>
             <Button variant="secondary" onClick={closeModal} disabled={disabled}>
               {t('config_management.visual.common.cancel')}
             </Button>
             <Button onClick={handleSave} disabled={disabled}>
-              {editingApiKeyId !== null ? t('config_management.visual.common.update') : t('config_management.visual.common.add')}
+              {editingIndex !== null ? t('config_management.visual.common.update') : t('config_management.visual.common.add')}
             </Button>
           </>
         }
       >
+        <div className="form-group">
+          <label htmlFor={`${apiKeyInputId}-name`}>{t('config_management.visual.api_keys.name_label')}</label>
+          <input
+            id={`${apiKeyInputId}-name`}
+            className="input"
+            placeholder={t('config_management.visual.api_keys.name_placeholder')}
+            value={nameValue}
+            onChange={(e) => setNameValue(e.target.value)}
+            disabled={disabled}
+          />
+          <div className="hint">{t('config_management.visual.api_keys.name_hint')}</div>
+        </div>
         <div className="form-group">
           <label htmlFor={apiKeyInputId}>{t('config_management.visual.api_keys.input_label')}</label>
           <div className={styles.apiKeyModalInputRow}>
