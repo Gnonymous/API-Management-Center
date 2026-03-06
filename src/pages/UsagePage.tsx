@@ -361,13 +361,24 @@ export function UsagePage() {
 
       {/* Details Grid */}
       <div className={styles.detailsGrid}>
-        <ApiDetailsCard apiStats={apiStats} loading={loading} hasPrices={hasPrices} />
+        <ApiDetailsCard
+          apiStats={apiStats}
+          loading={loading}
+          hasPrices={hasPrices}
+          apiKeys={config?.apiKeys || []}
+          geminiKeys={config?.geminiApiKeys || []}
+          claudeConfigs={config?.claudeApiKeys || []}
+          codexConfigs={config?.codexApiKeys || []}
+          vertexConfigs={config?.vertexApiKeys || []}
+          openaiProviders={config?.openaiCompatibility || []}
+        />
         <ModelStatsCard modelStats={modelStats} loading={loading} hasPrices={hasPrices} />
       </div>
 
       <RequestEventsDetailsCard
         usage={filteredUsage}
         loading={loading}
+        apiKeys={config?.apiKeys || []}
         geminiKeys={config?.geminiApiKeys || []}
         claudeConfigs={config?.claudeApiKeys || []}
         codexConfigs={config?.codexApiKeys || []}
@@ -379,6 +390,7 @@ export function UsagePage() {
       <CredentialStatsCard
         usage={filteredUsage}
         loading={loading}
+        apiKeys={config?.apiKeys || []}
         geminiKeys={config?.geminiApiKeys || []}
         claudeConfigs={config?.claudeApiKeys || []}
         codexConfigs={config?.codexApiKeys || []}
