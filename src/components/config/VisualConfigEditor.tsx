@@ -12,6 +12,7 @@ import { copyToClipboard } from '@/utils/clipboard';
 import type {
   PayloadFilterRule,
   PayloadModelEntry,
+  VisualApiKeyItem,
   PayloadParamEntry,
   PayloadParamValueType,
   PayloadRule,
@@ -86,23 +87,17 @@ function ApiKeysCardEditor({
   disabled,
   onChange,
 }: {
-  value: string;
+  value: VisualApiKeyItem[];
   disabled?: boolean;
-  onChange: (nextValue: string) => void;
+  onChange: (nextValue: VisualApiKeyItem[]) => void;
 }) {
   const { t } = useTranslation();
   const { showNotification } = useNotificationStore();
-  const apiKeys = useMemo(
-    () =>
-      value
-        .split('\n')
-        .map((key) => key.trim())
-        .filter(Boolean),
-    [value]
-  );
+  const apiKeys = useMemo(() => value, [value]);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [nameValue, setNameValue] = useState('');
   const [inputValue, setInputValue] = useState('');
   const [formError, setFormError] = useState('');
 
@@ -115,27 +110,31 @@ function ApiKeysCardEditor({
 
   const openAddModal = () => {
     setEditingIndex(null);
+    setNameValue('');
     setInputValue('');
     setFormError('');
     setModalOpen(true);
   };
 
   const openEditModal = (index: number) => {
+    const current = apiKeys[index];
     setEditingIndex(index);
-    setInputValue(apiKeys[index] ?? '');
+    setNameValue(current?.name ?? '');
+    setInputValue(current?.apiKey ?? '');
     setFormError('');
     setModalOpen(true);
   };
 
   const closeModal = () => {
     setModalOpen(false);
+    setNameValue('');
     setInputValue('');
     setEditingIndex(null);
     setFormError('');
   };
 
-  const updateApiKeys = (nextKeys: string[]) => {
-    onChange(nextKeys.join('\n'));
+  const updateApiKeys = (nextKeys: VisualApiKeyItem[]) => {
+    onChange(nextKeys);
   };
 
   const handleDelete = (index: number) => {
@@ -143,6 +142,7 @@ function ApiKeysCardEditor({
   };
 
   const handleSave = () => {
+    const trimmedName = nameValue.trim();
     const trimmed = inputValue.trim();
     if (!trimmed) {
       setFormError(t('config_management.visual.api_keys.error_empty'));
@@ -155,8 +155,12 @@ function ApiKeysCardEditor({
 
     const nextKeys =
       editingIndex === null
-        ? [...apiKeys, trimmed]
-        : apiKeys.map((key, idx) => (idx === editingIndex ? trimmed : key));
+        ? [...apiKeys, { id: makeClientId(), name: trimmedName, apiKey: trimmed }]
+        : apiKeys.map((item, idx) =>
+            idx === editingIndex
+              ? { ...item, name: trimmedName, apiKey: trimmed }
+              : item
+          );
     updateApiKeys(nextKeys);
     closeModal();
   };
@@ -198,14 +202,16 @@ function ApiKeysCardEditor({
       ) : (
         <div className="item-list" style={{ marginTop: 4 }}>
           {apiKeys.map((key, index) => (
-            <div key={`${key}-${index}`} className="item-row">
+            <div key={key.id || `${key.apiKey}-${index}`} className="item-row">
               <div className="item-meta">
                 <div className="pill">#{index + 1}</div>
-                <div className="item-title">API Key</div>
-                <div className="item-subtitle">{maskApiKey(String(key || ''))}</div>
+                <div className="item-title">
+                  {key.name || t('config_management.visual.api_keys.default_name', { index: index + 1 })}
+                </div>
+                <div className="item-subtitle">{maskApiKey(String(key.apiKey || ''))}</div>
               </div>
               <div className="item-actions">
-                <Button variant="secondary" size="sm" onClick={() => handleCopy(key)} disabled={disabled}>
+                <Button variant="secondary" size="sm" onClick={() => handleCopy(key.apiKey)} disabled={disabled}>
                   {t('common.copy')}
                 </Button>
                 <Button variant="secondary" size="sm" onClick={() => openEditModal(index)} disabled={disabled}>
@@ -237,6 +243,14 @@ function ApiKeysCardEditor({
           </>
         }
       >
+        <Input
+          label={t('config_management.visual.api_keys.name_label')}
+          placeholder={t('config_management.visual.api_keys.name_placeholder')}
+          value={nameValue}
+          onChange={(e) => setNameValue(e.target.value)}
+          disabled={disabled}
+          hint={t('config_management.visual.api_keys.name_hint')}
+        />
         <Input
           label={t('config_management.visual.api_keys.input_label')}
           placeholder={t('config_management.visual.api_keys.input_placeholder')}
@@ -825,9 +839,9 @@ export function VisualConfigEditor({ values, disabled = false, onChange }: Visua
             hint={t('config_management.visual.sections.auth.auth_dir_hint')}
           />
           <ApiKeysCardEditor
-            value={values.apiKeysText}
+            value={values.apiKeys}
             disabled={disabled}
-            onChange={(apiKeysText) => onChange({ apiKeysText })}
+            onChange={(apiKeys) => onChange({ apiKeys })}
           />
         </div>
       </ConfigSection>

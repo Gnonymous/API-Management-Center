@@ -1,6 +1,7 @@
 import type {
   ApiKeyEntry,
   CloakConfig,
+  ConfigApiKeyItem,
   GeminiKeyConfig,
   ModelAlias,
   OpenAIProviderConfig,
@@ -9,6 +10,7 @@ import type {
   AmpcodeModelMapping
 } from '@/types';
 import type { Config } from '@/types/config';
+import { mergeStoredApiKeyNames } from '@/utils/apiKeyNames';
 import { buildHeaderObject } from '@/utils/headers';
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -108,6 +110,25 @@ const normalizeApiKeyEntry = (entry: unknown): ApiKeyEntry | null => {
     apiKey: trimmed,
     proxyUrl: proxyUrl ? String(proxyUrl) : undefined,
     headers
+  };
+};
+
+const normalizeConfigApiKeyItem = (entry: unknown): ConfigApiKeyItem | null => {
+  const normalized = normalizeApiKeyEntry(entry);
+  if (!normalized) return null;
+
+  const record = isRecord(entry) ? entry : null;
+  const nameRaw =
+    record?.name ??
+    record?.['display-name'] ??
+    record?.displayName ??
+    record?.label ??
+    record?.title;
+  const name = normalizePrefix(nameRaw);
+
+  return {
+    apiKey: normalized.apiKey,
+    ...(name ? { name } : {}),
   };
 };
 
@@ -360,7 +381,11 @@ export const normalizeConfigResponse = (raw: unknown): Config => {
   }
   const apiKeysRaw = raw['api-keys'] ?? raw.apiKeys;
   if (Array.isArray(apiKeysRaw)) {
-    config.apiKeys = apiKeysRaw.map((key) => String(key)).filter((key) => key.trim() !== '');
+    config.apiKeys = mergeStoredApiKeyNames(
+      apiKeysRaw
+        .map((item) => normalizeConfigApiKeyItem(item))
+        .filter(Boolean) as ConfigApiKeyItem[]
+    );
   }
 
   const geminiList = raw['gemini-api-key'] ?? raw.geminiApiKey ?? raw.geminiApiKeys;
@@ -413,6 +438,7 @@ export const normalizeConfigResponse = (raw: unknown): Config => {
 
 export {
   normalizeApiKeyEntry,
+  normalizeConfigApiKeyItem,
   normalizeGeminiKeyConfig,
   normalizeModelAliases,
   normalizeOpenAIProvider,

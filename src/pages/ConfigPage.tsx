@@ -13,8 +13,9 @@ import { IconCheck, IconChevronDown, IconChevronUp, IconRefreshCw, IconSearch } 
 import { VisualConfigEditor } from '@/components/config/VisualConfigEditor';
 import { DiffModal } from '@/components/config/DiffModal';
 import { useVisualConfig } from '@/hooks/useVisualConfig';
-import { useNotificationStore, useAuthStore, useThemeStore } from '@/stores';
+import { useNotificationStore, useAuthStore, useThemeStore, useConfigStore } from '@/stores';
 import { configFileApi } from '@/services/api/configFile';
+import { saveStoredApiKeyNames } from '@/utils/apiKeyNames';
 import styles from './ConfigPage.module.scss';
 
 type ConfigEditorTab = 'visual' | 'source';
@@ -34,6 +35,8 @@ export function ConfigPage() {
   const { showNotification } = useNotificationStore();
   const connectionStatus = useAuthStore((state) => state.connectionStatus);
   const resolvedTheme = useThemeStore((state) => state.resolvedTheme);
+  const clearConfigCache = useConfigStore((state) => state.clearCache);
+  const fetchConfig = useConfigStore((state) => state.fetchConfig);
 
   const {
     visualValues,
@@ -100,8 +103,11 @@ export function ConfigPage() {
       const nextCommercialMode = readCommercialModeFromYaml(mergedYaml);
       const commercialModeChanged = previousCommercialMode !== nextCommercialMode;
 
+      saveStoredApiKeyNames(visualValues.apiKeys);
       await configFileApi.saveConfigYaml(mergedYaml);
       const latestContent = await configFileApi.fetchConfigYaml();
+      clearConfigCache();
+      fetchConfig(undefined, true).catch(() => {});
       setDirty(false);
       setDiffModalOpen(false);
       setContent(latestContent);
@@ -139,12 +145,21 @@ export function ConfigPage() {
       }
 
       if (diffOriginal === nextMergedYaml) {
+        let savedLocalNames = false;
+        if (activeTab !== 'source') {
+          savedLocalNames = saveStoredApiKeyNames(visualValues.apiKeys);
+          clearConfigCache();
+          fetchConfig(undefined, true).catch(() => {});
+        }
         setDirty(false);
         setContent(latestServerYaml);
         setServerYaml(latestServerYaml);
         setMergedYaml(nextMergedYaml);
         loadVisualValuesFromYaml(latestServerYaml);
-        showNotification(t('config_management.diff.no_changes'), 'info');
+        showNotification(
+          savedLocalNames ? t('config_management.save_success') : t('config_management.diff.no_changes'),
+          savedLocalNames ? 'success' : 'info'
+        );
         return;
       }
 

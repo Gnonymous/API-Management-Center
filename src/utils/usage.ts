@@ -325,8 +325,17 @@ export function normalizeUsageSourceId(
   return `${USAGE_SOURCE_PREFIX_TEXT}${trimmed}`;
 }
 
-export function buildCandidateUsageSourceIds(input: { apiKey?: string; prefix?: string }): string[] {
+export function buildCandidateUsageSourceIds(input: {
+  apiKey?: string;
+  prefix?: string;
+  name?: string;
+}): string[] {
   const result: string[] = [];
+
+  const name = input.name?.trim();
+  if (name) {
+    result.push(`${USAGE_SOURCE_PREFIX_TEXT}${name}`);
+  }
 
   const prefix = input.prefix?.trim();
   if (prefix) {
@@ -335,6 +344,7 @@ export function buildCandidateUsageSourceIds(input: { apiKey?: string; prefix?: 
 
   const apiKey = input.apiKey?.trim();
   if (apiKey) {
+    result.push(normalizeUsageSourceId(apiKey));
     result.push(`${USAGE_SOURCE_PREFIX_KEY}${fnv1a64Hex(apiKey)}`);
     result.push(`${USAGE_SOURCE_PREFIX_MASKED}${maskApiKey(apiKey)}`);
   }

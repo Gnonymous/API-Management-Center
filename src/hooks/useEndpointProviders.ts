@@ -12,12 +12,14 @@ import { useAuthStore, useConfigStore, useNotificationStore } from '@/stores';
 import type {
   AuthFileItem,
   Config,
+  ConfigApiKeyItem,
   GeminiKeyConfig,
   OAuthModelAliasEntry,
   OpenAIProviderConfig,
   ProviderKeyConfig,
 } from '@/types';
 import { normalizeApiBase } from '@/utils/connection';
+import { maskApiKey } from '@/utils/format';
 import type { ModelInfo } from '@/utils/models';
 
 // ─── Types ────────────────────────────────────────────────────
@@ -26,6 +28,8 @@ export type EndpointSourceKind = 'auth-proxy' | 'configured-api';
 
 export interface ProviderKeyOption {
   apiKey: string;
+  name?: string;
+  label: string;
 }
 
 export type ProviderModelsStatus = 'idle' | 'loading' | 'success' | 'error';
@@ -184,7 +188,40 @@ export const normalizeApiKeyList = (input: unknown): string[] => {
 };
 
 export const buildKeyOptions = (keys: string[]): ProviderKeyOption[] =>
-  normalizeApiKeyList(keys).map((apiKey) => ({ apiKey }));
+  normalizeApiKeyList(keys).map((apiKey) => ({ apiKey, label: maskApiKey(apiKey) }));
+
+const normalizeConfigApiKeyItems = (input: Config['apiKeys']): ConfigApiKeyItem[] => {
+  if (!Array.isArray(input)) return [];
+
+  const seen = new Set<string>();
+  const items: ConfigApiKeyItem[] = [];
+  input.forEach((item) => {
+    const apiKey = normalizeText(item?.apiKey);
+    if (!apiKey) return;
+
+    const dedupeKey = apiKey.toLowerCase();
+    if (seen.has(dedupeKey)) return;
+    seen.add(dedupeKey);
+
+    const name = normalizeText(item?.name);
+    items.push(name ? { apiKey, name } : { apiKey });
+  });
+
+  return items;
+};
+
+const buildConfigKeyLabel = (item: ConfigApiKeyItem): string => {
+  const masked = maskApiKey(item.apiKey);
+  const name = normalizeText(item.name);
+  return name ? `${name} · ${masked}` : masked;
+};
+
+export const buildConfigKeyOptions = (input: Config['apiKeys']): ProviderKeyOption[] =>
+  normalizeConfigApiKeyItems(input).map((item) => ({
+    apiKey: item.apiKey,
+    ...(item.name ? { name: item.name } : {}),
+    label: buildConfigKeyLabel(item),
+  }));
 
 const resolveSimpleProviderName = (
   fallbackName: string,
@@ -593,15 +630,14 @@ export function useEndpointProviders(): UseEndpointProvidersResult {
 
   const loadProxyApiKeys = useCallback(
     async (config: Config): Promise<ProviderKeyOption[]> => {
-      const fromConfig = normalizeApiKeyList(config.apiKeys);
+      const fromConfig = buildConfigKeyOptions(config.apiKeys);
       if (fromConfig.length > 0) {
-        return fromConfig.map((apiKey) => ({ apiKey }));
+        return fromConfig;
       }
 
       try {
         const fromApi = await apiKeysApi.list();
-        const normalized = normalizeApiKeyList(fromApi);
-        return normalized.map((apiKey) => ({ apiKey }));
+        return buildKeyOptions(normalizeApiKeyList(fromApi));
       } catch {
         return [];
       }

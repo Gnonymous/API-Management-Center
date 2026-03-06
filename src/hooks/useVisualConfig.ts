@@ -4,9 +4,11 @@ import type {
   PayloadFilterRule,
   PayloadParamValueType,
   PayloadRule,
+  VisualApiKeyItem,
   VisualConfigValues,
 } from '@/types/visualConfig';
-import { DEFAULT_VISUAL_VALUES } from '@/types/visualConfig';
+import { DEFAULT_VISUAL_VALUES, makeClientId } from '@/types/visualConfig';
+import { getStoredApiKeyName } from '@/utils/apiKeyNames';
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   if (value === null || typeof value !== 'object' || Array.isArray(value)) return null;
@@ -33,15 +35,53 @@ function extractApiKeyValue(raw: unknown): string | null {
   return null;
 }
 
-function parseApiKeysText(raw: unknown): string {
-  if (!Array.isArray(raw)) return '';
+function extractApiKeyName(raw: unknown): string {
+  const record = asRecord(raw);
+  if (!record) return '';
 
-  const keys: string[] = [];
-  for (const item of raw) {
-    const key = extractApiKeyValue(item);
-    if (key) keys.push(key);
+  const candidates = [
+    record.name,
+    record['display-name'],
+    record.displayName,
+    record.label,
+    record.title,
+  ];
+
+  for (const candidate of candidates) {
+    if (typeof candidate === 'string') {
+      const trimmed = candidate.trim();
+      if (trimmed) return trimmed;
+    }
   }
-  return keys.join('\n');
+
+  return '';
+}
+
+function parseApiKeys(raw: unknown): VisualApiKeyItem[] {
+  if (!Array.isArray(raw)) return [];
+
+  const keys: VisualApiKeyItem[] = [];
+  for (const item of raw) {
+    const apiKey = extractApiKeyValue(item);
+    if (!apiKey) continue;
+
+    keys.push({
+      id: makeClientId(),
+      name: extractApiKeyName(item) || getStoredApiKeyName(apiKey),
+      apiKey,
+    });
+  }
+
+  return keys;
+}
+
+function serializeApiKeysForYaml(items: VisualApiKeyItem[]): string[] {
+  return items
+    .map((item) => {
+      const apiKey = String(item.apiKey ?? '').trim();
+      return apiKey || null;
+    })
+    .filter(Boolean) as string[];
 }
 
 type YamlDocument = ReturnType<typeof parseDocument>;
@@ -312,7 +352,7 @@ export function useVisualConfig() {
               : '',
 
         authDir: typeof parsed['auth-dir'] === 'string' ? parsed['auth-dir'] : '',
-        apiKeysText: parseApiKeysText(parsed['api-keys']),
+        apiKeys: parseApiKeys(parsed['api-keys']),
 
         debug: Boolean(parsed.debug),
         commercialMode: Boolean(parsed['commercial-mode']),
@@ -402,11 +442,8 @@ export function useVisualConfig() {
         }
 
         setStringInDoc(doc, ['auth-dir'], values.authDir);
-        if (values.apiKeysText !== baselineValues.apiKeysText) {
-          const apiKeys = values.apiKeysText
-            .split('\n')
-            .map((key) => key.trim())
-            .filter(Boolean);
+        if (JSON.stringify(values.apiKeys) !== JSON.stringify(baselineValues.apiKeys)) {
+          const apiKeys = serializeApiKeysForYaml(values.apiKeys);
           if (apiKeys.length > 0) {
             doc.setIn(['api-keys'], apiKeys);
           } else if (docHas(doc, ['api-keys'])) {
