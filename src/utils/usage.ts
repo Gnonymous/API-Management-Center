@@ -367,8 +367,14 @@ export function normalizeUsageSourceId(
 export function buildCandidateUsageSourceIds(input: {
   apiKey?: string;
   prefix?: string;
+  name?: string;
 }): string[] {
   const result: string[] = [];
+
+  const name = input.name?.trim();
+  if (name) {
+    result.push(`${USAGE_SOURCE_PREFIX_TEXT}${name}`);
+  }
 
   const prefix = input.prefix?.trim();
   if (prefix) {

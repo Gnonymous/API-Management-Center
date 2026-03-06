@@ -1,8 +1,14 @@
-import type { GeminiKeyConfig, OpenAIProviderConfig, ProviderKeyConfig } from '@/types';
+import type {
+  ConfigApiKeyItem,
+  GeminiKeyConfig,
+  OpenAIProviderConfig,
+  ProviderKeyConfig,
+} from '@/types';
 import type { CredentialInfo, SourceInfo } from '@/types/sourceInfo';
 import { buildCandidateUsageSourceIds, normalizeAuthIndex } from '@/utils/usage';
 
 export interface SourceInfoMapInput {
+  apiKeys?: ConfigApiKeyItem[];
   geminiApiKeys?: GeminiKeyConfig[];
   claudeApiKeys?: ProviderKeyConfig[];
   codexApiKeys?: ProviderKeyConfig[];
@@ -65,6 +71,20 @@ export function buildSourceInfoMap(input: SourceInfoMapInput): SourceInfoMap {
       registerIdentity(bySource, candidate, entry);
     });
   };
+
+  (input.apiKeys || []).forEach((item, index) => {
+    const apiKey = item.apiKey?.trim();
+    if (!apiKey) return;
+    registerProvider(
+      {
+        displayName: item.name?.trim() || `API Key #${index + 1}`,
+        type: '',
+        identityKey: buildProviderIdentityKey('api-key', index),
+      },
+      [],
+      buildCandidateUsageSourceIds({ apiKey, name: item.name })
+    );
+  });
 
   const providers: Array<{
     items: Array<{ apiKey?: string; prefix?: string; authIndex?: string }>;

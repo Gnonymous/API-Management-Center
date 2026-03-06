@@ -2,7 +2,12 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
 import { authFilesApi } from '@/services/api/authFiles';
-import type { GeminiKeyConfig, OpenAIProviderConfig, ProviderKeyConfig } from '@/types';
+import type {
+  ConfigApiKeyItem,
+  GeminiKeyConfig,
+  OpenAIProviderConfig,
+  ProviderKeyConfig,
+} from '@/types';
 import type { AuthFileItem } from '@/types/authFile';
 import type { CredentialInfo } from '@/types/sourceInfo';
 import { buildSourceInfoMap, resolveSourceDisplay } from '@/utils/sourceResolver';
@@ -13,6 +18,7 @@ import styles from '@/pages/UsagePage.module.scss';
 export interface CredentialStatsCardProps {
   usage: UsagePayload | null;
   loading: boolean;
+  apiKeys: ConfigApiKeyItem[];
   geminiKeys: GeminiKeyConfig[];
   claudeConfigs: ProviderKeyConfig[];
   codexConfigs: ProviderKeyConfig[];
@@ -33,6 +39,7 @@ interface CredentialRow {
 export function CredentialStatsCard({
   usage,
   loading,
+  apiKeys,
   geminiKeys,
   claudeConfigs,
   codexConfigs,
@@ -75,13 +82,14 @@ export function CredentialStatsCard({
   const sourceInfoMap = useMemo(
     () =>
       buildSourceInfoMap({
+        apiKeys,
         geminiApiKeys: geminiKeys,
         claudeApiKeys: claudeConfigs,
         codexApiKeys: codexConfigs,
         vertexApiKeys: vertexConfigs,
         openaiCompatibility: openaiProviders,
       }),
-    [claudeConfigs, codexConfigs, geminiKeys, openaiProviders, vertexConfigs]
+    [apiKeys, claudeConfigs, codexConfigs, geminiKeys, openaiProviders, vertexConfigs]
   );
 
   const rows = useMemo((): CredentialRow[] => {

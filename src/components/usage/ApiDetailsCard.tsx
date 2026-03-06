@@ -1,23 +1,59 @@
-import { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
-import { formatCompactNumber, formatUsd, type ApiStats } from '@/utils/usage';
+import type { ConfigApiKeyItem, GeminiKeyConfig, OpenAIProviderConfig, ProviderKeyConfig } from '@/types';
+import { buildSourceInfoMap } from '@/utils/sourceResolver';
+import { formatCompactNumber, formatUsd, normalizeUsageSourceId, type ApiStats, type ModelPrice } from '@/utils/usage';
 import styles from '@/pages/UsagePage.module.scss';
 
 export interface ApiDetailsCardProps {
   apiStats: ApiStats[];
   loading: boolean;
   hasPrices: boolean;
+  modelPrices?: Record<string, ModelPrice>;
+  apiKeys: ConfigApiKeyItem[];
+  geminiKeys: GeminiKeyConfig[];
+  claudeConfigs: ProviderKeyConfig[];
+  codexConfigs: ProviderKeyConfig[];
+  vertexConfigs: ProviderKeyConfig[];
+  openaiProviders: OpenAIProviderConfig[];
 }
 
 type ApiSortKey = 'endpoint' | 'requests' | 'tokens' | 'cost';
 type SortDir = 'asc' | 'desc';
 
-export function ApiDetailsCard({ apiStats, loading, hasPrices }: ApiDetailsCardProps) {
-  const { t } = useTranslation();
+interface ApiStatRow extends ApiStats {
+  displayName: string;
+}
+
+export function ApiDetailsCard({
+  apiStats,
+  loading,
+  hasPrices,
+  apiKeys,
+  geminiKeys,
+  claudeConfigs,
+  codexConfigs,
+  vertexConfigs,
+  openaiProviders,
+}: ApiDetailsCardProps) {
+  const { t, i18n } = useTranslation();
   const [expandedApis, setExpandedApis] = useState<Set<string>>(new Set());
   const [sortKey, setSortKey] = useState<ApiSortKey>('requests');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
+
+  const sourceInfoMap = useMemo(
+    () =>
+      buildSourceInfoMap({
+        apiKeys,
+        geminiApiKeys: geminiKeys,
+        claudeApiKeys: claudeConfigs,
+        codexApiKeys: codexConfigs,
+        vertexApiKeys: vertexConfigs,
+        openaiCompatibility: openaiProviders,
+      }),
+    [apiKeys, claudeConfigs, codexConfigs, geminiKeys, openaiProviders, vertexConfigs]
+  );
 
   const toggleExpand = (endpoint: string) => {
     setExpandedApis((prev) => {
@@ -41,11 +77,17 @@ export function ApiDetailsCard({ apiStats, loading, hasPrices }: ApiDetailsCardP
   };
 
   const sorted = useMemo(() => {
-    const list = [...apiStats];
+    const list: ApiStatRow[] = apiStats.map((api) => ({
+      ...api,
+      displayName:
+        sourceInfoMap.bySource.get(normalizeUsageSourceId(api.endpoint))?.displayName ||
+        api.endpoint,
+    }));
+
     const dir = sortDir === 'asc' ? 1 : -1;
     list.sort((a, b) => {
       switch (sortKey) {
-        case 'endpoint': return dir * a.endpoint.localeCompare(b.endpoint);
+        case 'endpoint': return dir * a.displayName.localeCompare(b.displayName, i18n.language);
         case 'requests': return dir * (a.totalRequests - b.totalRequests);
         case 'tokens': return dir * (a.totalTokens - b.totalTokens);
         case 'cost': return dir * (a.totalCost - b.totalCost);
@@ -53,7 +95,7 @@ export function ApiDetailsCard({ apiStats, loading, hasPrices }: ApiDetailsCardP
       }
     });
     return list;
-  }, [apiStats, sortKey, sortDir]);
+  }, [apiStats, i18n.language, sortKey, sortDir, sourceInfoMap]);
 
   const arrow = (key: ApiSortKey) =>
     sortKey === key ? (sortDir === 'asc' ? ' ▲' : ' ▼') : '';
@@ -98,7 +140,7 @@ export function ApiDetailsCard({ apiStats, loading, hasPrices }: ApiDetailsCardP
                       aria-controls={panelId}
                     >
                       <div className={styles.apiInfo}>
-                        <span className={styles.apiEndpoint}>{api.endpoint}</span>
+                        <span className={styles.apiEndpoint}>{api.displayName}</span>
                         <div className={styles.apiStats}>
                           <span className={styles.apiBadge}>
                             <span className={styles.requestCountCell}>
