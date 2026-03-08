@@ -97,7 +97,8 @@
   "header": {
     "check_connection": "Check Connection",
     "refresh_all": "Refresh All",
-    "logout": "Logout"
+    "logout": "Logout",
+    "publish": "Publish"
   },
   "connection": {
     "title": "Connection Information",
@@ -1452,6 +1453,31 @@
     "switch_to_light": "Switch to light mode",
     "switch_to_dark": "Switch to dark mode",
     "auto": "Follow system"
+  },
+  "publish": {
+    "title": "Temporary Publish",
+    "description": "This panel only provides the local `cloudflared` quick tunnel command and a place to store the temporary public URL. The WebUI cannot start local processes directly, so you still need to run the command in a terminal on the host machine.",
+    "temporary_badge": "Temporary public URL, suitable only for testing or short-lived sharing",
+    "command_label": "Start Command",
+    "copy_command": "Copy Command",
+    "command_copied": "Publish command copied",
+    "url_label": "Most Recent Temporary Public URL",
+    "url_placeholder": "Paste the https://*.trycloudflare.com URL printed by cloudflared",
+    "url_hint": "After you paste it, the URL is stored in this browser for quick copy/open later.",
+    "url_invalid": "Please enter a valid http:// or https:// URL",
+    "url_saved": "Temporary public URL saved",
+    "url_cleared": "Temporary public URL cleared",
+    "url_missing": "No temporary public URL has been saved yet",
+    "url_copied": "Temporary public URL copied",
+    "copy_url": "Copy URL",
+    "open_url": "Open URL",
+    "save_url": "Save URL",
+    "clear_url": "Clear URL",
+    "notes_title": "Usage Notes",
+    "note_install": "The host machine must have `cloudflared` installed, otherwise the command will fail.",
+    "note_manual": "Run the command manually in a terminal; the public URL will appear in the `cloudflared` output.",
+    "note_temporary": "Quick Tunnel URLs are temporary and usually change after the process restarts.",
+    "note_background": "If you need it to stay running, manage it yourself with `tmux`, `screen`, `nohup`, or a system service."
   },
   "sidebar": {
     "toggle_expand": "Expand sidebar",

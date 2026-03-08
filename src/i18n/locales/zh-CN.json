@@ -97,7 +97,8 @@
   "header": {
     "check_connection": "检查连接",
     "refresh_all": "刷新全部",
-    "logout": "登出"
+    "logout": "登出",
+    "publish": "发布"
   },
   "connection": {
     "title": "连接信息",
@@ -1452,6 +1453,31 @@
     "switch_to_light": "切换到亮色模式",
     "switch_to_dark": "切换到暗色模式",
     "auto": "跟随系统"
+  },
+  "publish": {
+    "title": "临时发布",
+    "description": "这里仅提供本地 `cloudflared` 快速隧道命令与临时公网地址记录。当前 WebUI 不能直接启动本机进程，仍需你在宿主机终端手动运行命令。",
+    "temporary_badge": "临时公网地址，仅适合测试或临时分享",
+    "command_label": "启动命令",
+    "copy_command": "复制命令",
+    "command_copied": "发布命令已复制",
+    "url_label": "最近一次临时公网地址",
+    "url_placeholder": "粘贴 cloudflared 输出的 https://*.trycloudflare.com 地址",
+    "url_hint": "手动粘贴后会保存在当前浏览器，方便后续复制或打开。",
+    "url_invalid": "请输入有效的 http:// 或 https:// 地址",
+    "url_saved": "临时公网地址已保存",
+    "url_cleared": "临时公网地址已清除",
+    "url_missing": "还没有保存临时公网地址",
+    "url_copied": "临时公网地址已复制",
+    "copy_url": "复制地址",
+    "open_url": "打开地址",
+    "save_url": "保存地址",
+    "clear_url": "清空地址",
+    "notes_title": "使用说明",
+    "note_install": "宿主机需要已安装 `cloudflared`，否则该命令无法执行。",
+    "note_manual": "请在终端手动运行命令，公网地址会显示在 `cloudflared` 输出中。",
+    "note_temporary": "Quick Tunnel 地址是临时的，重启进程后通常会变化。",
+    "note_background": "如果需要常驻，请自行使用 `tmux`、`screen`、`nohup` 或系统服务托管。"
   },
   "sidebar": {
     "toggle_expand": "展开侧边栏",
