@@ -78,18 +78,6 @@ function parseApiKeys(raw: unknown): VisualApiKeyItem[] {
   return keys;
 }
 
-function parseApiKeysText(raw: unknown): string {
-  if (!Array.isArray(raw)) return '';
-
-  const keys: string[] = [];
-  for (const item of raw) {
-    const key = extractApiKeyValue(item);
-    if (key) keys.push(key);
-  }
-
-  return keys.join('\n');
-}
-
 function replaceApiKeyValue(entry: unknown, apiKey: string): unknown {
   const record = asRecord(entry);
   if (!record) return apiKey;
