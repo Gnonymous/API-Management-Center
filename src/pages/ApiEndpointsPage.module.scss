@@ -25,6 +25,212 @@
   flex-wrap: wrap;
 }
 
+.callOrderCard {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.callOrderHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.callOrderTitle {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.callOrderDescription {
+  margin: 0.35rem 0 0;
+  font-size: 0.84rem;
+  color: var(--text-secondary);
+}
+
+.callOrderStrategyBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-secondary, var(--card-bg));
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.callOrderToolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.callOrderInputWrap {
+  flex: 1;
+  min-width: 220px;
+}
+
+.callOrderInput {
+  width: 100%;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--border-color);
+  border-radius: $radius-md;
+  background: var(--input-bg);
+  color: var(--text-primary);
+  font-size: 0.84rem;
+  outline: none;
+  transition: border-color 0.2s;
+
+  &:focus {
+    border-color: var(--primary-color);
+  }
+
+  &::placeholder {
+    color: var(--text-tertiary);
+  }
+}
+
+.callOrderNotice {
+  padding: 0.75rem 0.9rem;
+  border-radius: $radius-md;
+  border: 1px solid var(--border-color);
+  background: var(--bg-secondary, var(--card-bg));
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.callOrderEmpty {
+  padding: 1rem;
+  border: 1px dashed var(--border-color);
+  border-radius: $radius-md;
+  color: var(--text-tertiary);
+  font-size: 0.84rem;
+}
+
+.callOrderSequence {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.callOrderGroups {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.callOrderGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding: 0.9rem;
+  border: 1px solid var(--border-color);
+  border-radius: $radius-lg;
+  background: var(--bg-secondary, var(--card-bg));
+}
+
+.callOrderGroupHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.callOrderGroupTitle {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.callOrderGroupCount {
+  font-size: 0.74rem;
+  color: var(--text-tertiary);
+}
+
+.callOrderGroupHint {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+.callOrderGroupList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.callOrderItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: 0.85rem 0.9rem;
+  border: 1px solid var(--border-color);
+  border-radius: $radius-md;
+  background: var(--card-bg);
+}
+
+.callOrderItemHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.callOrderStep {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: 999px;
+  background: var(--primary-color);
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.callOrderItemMain {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.callOrderItemTitle {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  word-break: break-word;
+}
+
+.callOrderItemMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+
+  span {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.45rem;
+    border-radius: 999px;
+    background: var(--bg-secondary, var(--card-bg));
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    font-size: 0.74rem;
+  }
+}
+
 .sectionList {
   display: flex;
   flex-direction: column;
