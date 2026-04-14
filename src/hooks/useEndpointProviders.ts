@@ -40,6 +40,11 @@ export interface ProviderModelsState {
   error?: string;
 }
 
+export interface OAuthAliasRule {
+  alias: string;
+  fork: boolean;
+}
+
 export interface EndpointProviderEntry {
   id: string;
   sourceKind: EndpointSourceKind;
@@ -50,7 +55,7 @@ export interface EndpointProviderEntry {
   order: number;
   configuredModels?: ModelInfo[];
   authFileNames?: string[];
-  aliasLookup?: Record<string, string>;
+  aliasLookup?: Record<string, OAuthAliasRule>;
   excludedPatterns?: string[];
   realBaseUrl?: string;
   realKeyOptions?: ProviderKeyOption[];
@@ -358,15 +363,15 @@ export const buildConfiguredEntries = (
 
 export const buildAliasLookup = (
   entries?: OAuthModelAliasEntry[]
-): Record<string, string> => {
+): Record<string, OAuthAliasRule> => {
   if (!Array.isArray(entries) || entries.length === 0) return {};
 
-  const aliasLookup: Record<string, string> = {};
+  const aliasLookup: Record<string, OAuthAliasRule> = {};
   entries.forEach((entry) => {
     const name = normalizeText(entry.name).toLowerCase();
     const alias = normalizeText(entry.alias);
     if (!name || !alias) return;
-    aliasLookup[name] = alias;
+    aliasLookup[name] = { alias, fork: entry.fork === true };
   });
   return aliasLookup;
 };
@@ -452,7 +457,7 @@ const normalizeAuthApiModels = (
 
 const applyAliasLookup = (
   models: ModelInfo[],
-  lookup?: Record<string, string>
+  lookup?: Record<string, OAuthAliasRule>
 ): ModelInfo[] => {
   if (!lookup || Object.keys(lookup).length === 0) {
     return dedupeModels(models);
@@ -462,14 +467,15 @@ const applyAliasLookup = (
     const rawName = normalizeText(model.name);
     if (!rawName) return model;
 
-    const mappedAlias = normalizeText(lookup[rawName.toLowerCase()]);
+    const aliasRule = lookup[rawName.toLowerCase()];
+    const mappedAlias = normalizeText(aliasRule?.alias);
     if (!mappedAlias) return model;
     if (mappedAlias.toLowerCase() === rawName.toLowerCase()) return model;
 
     return {
       ...model,
       name: mappedAlias,
-      alias: rawName,
+      alias: aliasRule?.fork ? rawName : undefined,
     } satisfies ModelInfo;
   });
 
@@ -481,6 +487,7 @@ const applyAliasLookup = (
 export interface UseEndpointProvidersResult {
   providerEntries: EndpointProviderEntry[];
   modelsByProvider: Record<string, ProviderModelsState>;
+  authFiles: AuthFileItem[];
   pageLoading: boolean;
   reload: (forceRefresh?: boolean) => Promise<void>;
   reloadProviderModels: (providerId: string) => void;
@@ -497,6 +504,7 @@ export function useEndpointProviders(): UseEndpointProvidersResult {
   const [modelsByProvider, setModelsByProvider] = useState<
     Record<string, ProviderModelsState>
   >({});
+  const [authFiles, setAuthFiles] = useState<AuthFileItem[]>([]);
   const [pageLoading, setPageLoading] = useState(false);
 
   const providerFetchTokenRef = useRef<Record<string, number>>({});
@@ -653,6 +661,7 @@ export function useEndpointProviders(): UseEndpointProvidersResult {
       ) {
         setProviderEntries([]);
         setModelsByProvider({});
+        setAuthFiles([]);
         return;
       }
 
@@ -679,6 +688,7 @@ export function useEndpointProviders(): UseEndpointProvidersResult {
         const authFiles = Array.isArray(authFilesResult?.files)
           ? authFilesResult.files
           : [];
+        setAuthFiles(authFiles);
 
         const authEntries = buildAuthProviderEntries(
           authFiles,
@@ -731,6 +741,7 @@ export function useEndpointProviders(): UseEndpointProvidersResult {
   return {
     providerEntries,
     modelsByProvider,
+    authFiles,
     pageLoading,
     reload: loadPageData,
     reloadProviderModels,

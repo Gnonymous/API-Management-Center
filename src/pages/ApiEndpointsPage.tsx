@@ -11,7 +11,7 @@ import {
   IconEye,
   IconEyeOff,
 } from '@/components/ui/icons';
-import { useNotificationStore, useThemeStore } from '@/stores';
+import { useConfigStore, useNotificationStore, useThemeStore } from '@/stores';
 import { copyToClipboard } from '@/utils/clipboard';
 import { normalizeApiBase } from '@/utils/connection';
 import {
@@ -22,6 +22,10 @@ import {
   type ProviderModelsState,
   type SourceSection,
 } from '@/hooks/useEndpointProviders';
+import {
+  useModelCallOrder,
+  type ModelCallOrderCandidate,
+} from '@/hooks/useModelCallOrder';
 import iconGemini from '@/assets/icons/gemini.svg';
 import iconClaude from '@/assets/icons/claude.svg';
 import iconOpenaiLight from '@/assets/icons/openai-light.svg';
@@ -161,6 +165,154 @@ const resolveProviderIconKind = (provider: EndpointProviderEntry): ProviderIconK
 
   return null;
 };
+
+const buildCallOrderSourceLabel = (
+  t: ReturnType<typeof useTranslation>['t'],
+  candidate: ModelCallOrderCandidate
+): string => {
+  if (candidate.authFileName) {
+    return t('api_endpoints.call_order_source_auth_file', {
+      provider: candidate.providerName,
+      file: candidate.authFileName,
+    });
+  }
+
+  return t('api_endpoints.call_order_source_provider', {
+    provider: candidate.providerName,
+  });
+};
+
+function ModelCallOrderPanel({
+  targetModel,
+  onTargetModelChange,
+  allModelNames,
+  routingStrategy,
+  displayMode,
+  candidates,
+  groups,
+}: {
+  targetModel: string;
+  onTargetModelChange: (value: string) => void;
+  allModelNames: string[];
+  routingStrategy: string;
+  displayMode: 'sequence' | 'priority-groups';
+  candidates: ModelCallOrderCandidate[];
+  groups: Array<{ priority: number; items: ModelCallOrderCandidate[] }>;
+}) {
+  const { t } = useTranslation();
+  const strategyLabel =
+    routingStrategy === 'fill-first'
+      ? t('api_endpoints.call_order_strategy_fill_first')
+      : t('api_endpoints.call_order_strategy_round_robin');
+
+  return (
+    <Card>
+      <div className={styles.callOrderCard}>
+        <div className={styles.callOrderHeader}>
+          <div>
+            <h2 className={styles.callOrderTitle}>{t('api_endpoints.call_order_title')}</h2>
+            <p className={styles.callOrderDescription}>{t('api_endpoints.call_order_description')}</p>
+          </div>
+          <span className={styles.callOrderStrategyBadge}>{strategyLabel}</span>
+        </div>
+
+        <div className={styles.callOrderToolbar}>
+          <div className={styles.callOrderInputWrap}>
+            <input
+              className={styles.callOrderInput}
+              type="text"
+              value={targetModel}
+              onChange={(event) => onTargetModelChange(event.target.value)}
+              placeholder={t('api_endpoints.call_order_input_placeholder')}
+              list="api-endpoints-models"
+            />
+            <datalist id="api-endpoints-models">
+              {allModelNames.map((modelName) => (
+                <option key={modelName} value={modelName} />
+              ))}
+            </datalist>
+          </div>
+          {targetModel ? (
+            <Button variant="secondary" size="sm" onClick={() => onTargetModelChange('')}>
+              {t('common.clear')}
+            </Button>
+          ) : null}
+        </div>
+
+        <div className={styles.callOrderNotice}>{t('api_endpoints.call_order_notice')}</div>
+
+        {!targetModel.trim() ? (
+          <div className={styles.callOrderEmpty}>{t('api_endpoints.call_order_empty')}</div>
+        ) : candidates.length === 0 ? (
+          <div className={styles.callOrderEmpty}>
+            {t('api_endpoints.call_order_no_match', { model: targetModel.trim() })}
+          </div>
+        ) : displayMode === 'sequence' ? (
+          <ol className={styles.callOrderSequence}>
+            {candidates.map((candidate, index) => (
+              <li key={candidate.id} className={styles.callOrderItem}>
+                <div className={styles.callOrderItemHeader}>
+                  <span className={styles.callOrderStep}>{index + 1}</span>
+                  <div className={styles.callOrderItemMain}>
+                    <div className={styles.callOrderItemTitle}>
+                      {buildCallOrderSourceLabel(t, candidate)}
+                    </div>
+                    <div className={styles.callOrderItemMeta}>
+                      <span>{t('api_endpoints.call_order_priority', { priority: candidate.resolvedPriority })}</span>
+                      <span>{t(`api_endpoints.call_order_priority_source_${candidate.prioritySource}`)}</span>
+                      <span>{candidate.matchedModelName}</span>
+                      {candidate.matchedAlias ? (
+                        <span>
+                          {t('api_endpoints.call_order_alias', { alias: candidate.matchedAlias })}
+                        </span>
+                      ) : null}
+                    </div>
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ol>
+        ) : (
+          <div className={styles.callOrderGroups}>
+            {groups.map((group) => (
+              <section key={group.priority} className={styles.callOrderGroup}>
+                <div className={styles.callOrderGroupHeader}>
+                  <h3 className={styles.callOrderGroupTitle}>
+                    {t('api_endpoints.call_order_group_title', { priority: group.priority })}
+                  </h3>
+                  <span className={styles.callOrderGroupCount}>
+                    {t('api_endpoints.call_order_group_count', { count: group.items.length })}
+                  </span>
+                </div>
+                <div className={styles.callOrderGroupHint}>
+                  {t('api_endpoints.call_order_group_hint')}
+                </div>
+                <div className={styles.callOrderGroupList}>
+                  {group.items.map((candidate) => (
+                    <div key={candidate.id} className={styles.callOrderItem}>
+                      <div className={styles.callOrderItemMain}>
+                        <div className={styles.callOrderItemTitle}>
+                          {buildCallOrderSourceLabel(t, candidate)}
+                        </div>
+                        <div className={styles.callOrderItemMeta}>
+                          <span>{t(`api_endpoints.call_order_priority_source_${candidate.prioritySource}`)}</span>
+                          <span>{candidate.matchedModelName}</span>
+                          {candidate.matchedAlias ? (
+                            <span>{t('api_endpoints.call_order_alias', { alias: candidate.matchedAlias })}</span>
+                          ) : null}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            ))}
+          </div>
+        )}
+      </div>
+    </Card>
+  );
+}
 
 function ProviderCard({
   provider,
@@ -602,9 +754,11 @@ export function ApiEndpointsPage() {
   const { t } = useTranslation();
   const resolvedTheme = useThemeStore((state) => state.resolvedTheme);
 
+  const config = useConfigStore((state) => state.config);
   const {
     providerEntries,
     modelsByProvider,
+    authFiles,
     pageLoading,
     reload,
     reloadProviderModels,
@@ -614,6 +768,7 @@ export function ApiEndpointsPage() {
     {}
   );
   const [search, setSearch] = useState('');
+  const [targetModel, setTargetModel] = useState('');
 
   const selectedKeyIndexRef = useRef<Record<string, number>>({});
 
@@ -663,6 +818,30 @@ export function ApiEndpointsPage() {
     });
   }, [modelsByProvider, providerEntries, search]);
 
+  const callOrder = useModelCallOrder({
+    targetModel,
+    config,
+    authFiles,
+    providerEntries,
+    modelsByProvider,
+  });
+
+  const handleSearchChange = useCallback(
+    (value: string) => {
+      setSearch(value);
+
+      if (targetModel.trim()) return;
+      const keyword = value.trim().toLowerCase();
+      if (!keyword) return;
+
+      const exactMatch = callOrder.allModelNames.find((name) => name.toLowerCase() === keyword);
+      if (exactMatch) {
+        setTargetModel(exactMatch);
+      }
+    },
+    [callOrder.allModelNames, targetModel]
+  );
+
   const sections = useMemo<SourceSection[]>(() => {
     const authItems = filteredProviders.filter((item) => item.sourceKind === 'auth-proxy');
     const configuredItems = filteredProviders.filter((item) => item.sourceKind === 'configured-api');
@@ -702,13 +881,23 @@ export function ApiEndpointsPage() {
             type="text"
             placeholder={t('api_endpoints.search_placeholder')}
             value={search}
-            onChange={(event) => setSearch(event.target.value)}
+            onChange={(event) => handleSearchChange(event.target.value)}
           />
         </div>
         <Button variant="secondary" size="sm" onClick={() => void reload(true)} loading={modelsLoading}>
           {t('common.refresh')}
         </Button>
       </div>
+
+      <ModelCallOrderPanel
+        targetModel={targetModel}
+        onTargetModelChange={setTargetModel}
+        allModelNames={callOrder.allModelNames}
+        routingStrategy={callOrder.routingStrategy}
+        displayMode={callOrder.displayMode}
+        candidates={callOrder.candidates}
+        groups={callOrder.groups}
+      />
 
       {pageLoading && providerEntries.length === 0 ? (
         <Card>
