@@ -1563,6 +1563,25 @@
     "testing": "Тестирование...",
     "test_success": "Подключение успешно!",
     "test_failed": "Подключение не удалось",
-    "test_select_model": "Выберите модель для тестирования"
+    "test_select_model": "Выберите модель для тестирования",
+    "call_order_title": "Порядок вызова модели",
+    "call_order_description": "Показывает теоретические источники и приоритеты для выбранной модели на основе текущей конфигурации.",
+    "call_order_input_placeholder": "Введите или выберите имя модели...",
+    "call_order_notice": "Это теоретический порядок, выведенный из текущей конфигурации, а не фактическая runtime-цепочка. Для fill-first показывается последовательность, для round-robin — группы по приоритету.",
+    "call_order_empty": "Введите имя модели, чтобы посмотреть её теоретический порядок вызова.",
+    "call_order_no_match": "Сейчас нет источников, подходящих для модели {{model}}.",
+    "call_order_strategy_fill_first": "Стратегия: Fill First",
+    "call_order_strategy_round_robin": "Стратегия: Round Robin",
+    "call_order_priority": "Приоритет {{priority}}",
+    "call_order_alias": "Алиас {{alias}}",
+    "call_order_source_provider": "Провайдер: {{provider}}",
+    "call_order_source_auth_file": "Провайдер: {{provider}} · Auth-файл: {{file}}",
+    "call_order_priority_source_model": "Приоритет модели",
+    "call_order_priority_source_provider": "Приоритет провайдера",
+    "call_order_priority_source_auth-file": "Приоритет auth-файла",
+    "call_order_priority_source_default": "Приоритет по умолчанию",
+    "call_order_group_title": "Пул приоритета {{priority}}",
+    "call_order_group_count": "{{count}} кандидатов",
+    "call_order_group_hint": "Кандидаты внутри одной группы приоритета имеют одинаковый приоритет и распределяются по стратегии round-robin."
   }
 }
