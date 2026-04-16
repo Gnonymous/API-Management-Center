@@ -10,7 +10,6 @@ import {
 import { NavLink, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
 import { Modal } from '@/components/ui/Modal';
 import { PageTransition } from '@/components/common/PageTransition';
 import { MainRoutes } from '@/router/MainRoutes';
@@ -25,7 +24,6 @@ import {
   IconSidebarSystem,
   IconSidebarUsage,
   IconSlidersHorizontal,
-  IconSatellite,
   IconZap,
 } from '@/components/ui/icons';
 import { INLINE_LOGO_JPEG } from '@/assets/logoInline';
@@ -38,7 +36,6 @@ import {
 } from '@/stores';
 import { versionApi } from '@/services/api';
 import { triggerHeaderRefresh } from '@/hooks/useHeaderRefresh';
-import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { LANGUAGE_LABEL_KEYS, LANGUAGE_ORDER } from '@/utils/constants';
 import { isSupportedLanguage } from '@/utils/language';
 import type { Theme } from '@/types';
@@ -50,8 +47,6 @@ const BREW_UPGRADE_COMMANDS = [
   'brew services restart cliproxyapi',
 ];
 const BREW_UPGRADE_COMMAND_TEXT = BREW_UPGRADE_COMMANDS.join('\n');
-const QUICK_TUNNEL_COMMAND = 'cloudflared tunnel --url http://localhost:8317';
-const QUICK_TUNNEL_STORAGE_KEY = 'publishQuickTunnelUrl';
 
 const sidebarIcons: Record<string, ReactNode> = {
   dashboard: <IconSidebarDashboard size={18} />,
@@ -281,24 +276,15 @@ export function MainLayout() {
   const [languageMenuOpen, setLanguageMenuOpen] = useState(false);
   const [themeMenuOpen, setThemeMenuOpen] = useState(false);
   const [brandExpanded, setBrandExpanded] = useState(true);
-  const [publishModalOpen, setPublishModalOpen] = useState(false);
-  const [publishUrlDraft, setPublishUrlDraft] = useState('');
   const contentRef = useRef<HTMLDivElement | null>(null);
   const languageMenuRef = useRef<HTMLDivElement | null>(null);
   const themeMenuRef = useRef<HTMLDivElement | null>(null);
   const brandCollapseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const headerRef = useRef<HTMLElement | null>(null);
-  const [savedPublishUrl, setSavedPublishUrl] = useLocalStorage<string>(QUICK_TUNNEL_STORAGE_KEY, '');
 
   const fullBrandName = 'CLI Proxy API Management Center';
   const abbrBrandName = t('title.abbr');
   const isLogsPage = location.pathname.startsWith('/logs');
-  const hasSavedPublishUrl = Boolean(savedPublishUrl.trim());
-  const publishUrlValue = publishUrlDraft.trim();
-  const publishUrlError =
-    publishUrlValue.length > 0 && !/^https?:\/\/\S+$/i.test(publishUrlValue)
-      ? t('publish.url_invalid')
-      : '';
 
   // 将顶栏高度写入 CSS 变量，确保侧栏/内容区计算一致，防止滚动时抖动
   useLayoutEffect(() => {
@@ -620,48 +606,6 @@ export function MainLayout() {
     }
     showNotification(t('system_info.version_upgrade_copy_failed'), 'error');
   };
-
-  const handleOpenPublishModal = useCallback(() => {
-    setPublishUrlDraft(savedPublishUrl);
-    setPublishModalOpen(true);
-  }, [savedPublishUrl]);
-
-  const handlePublishCommandCopy = useCallback(async () => {
-    const copied = await copyToClipboard(QUICK_TUNNEL_COMMAND);
-    showNotification(copied ? t('publish.command_copied') : t('notification.copy_failed'), copied ? 'success' : 'error');
-  }, [showNotification, t]);
-
-  const handlePublishUrlCopy = useCallback(async () => {
-    if (!savedPublishUrl.trim()) {
-      showNotification(t('publish.url_missing'), 'warning');
-      return;
-    }
-
-    const copied = await copyToClipboard(savedPublishUrl);
-    showNotification(copied ? t('publish.url_copied') : t('notification.copy_failed'), copied ? 'success' : 'error');
-  }, [savedPublishUrl, showNotification, t]);
-
-  const handlePublishUrlSave = useCallback(() => {
-    if (publishUrlError) {
-      showNotification(publishUrlError, 'error');
-      return;
-    }
-
-    setSavedPublishUrl(publishUrlValue);
-    showNotification(
-      publishUrlValue ? t('publish.url_saved') : t('publish.url_cleared'),
-      'success'
-    );
-  }, [publishUrlError, publishUrlValue, setSavedPublishUrl, showNotification, t]);
-
-  const handlePublishUrlOpen = useCallback(() => {
-    if (!savedPublishUrl.trim()) {
-      showNotification(t('publish.url_missing'), 'warning');
-      return;
-    }
-
-    window.open(savedPublishUrl, '_blank', 'noopener,noreferrer');
-  }, [savedPublishUrl, showNotification, t]);
   return (
     <div className="app-shell">
       <header className="main-header" ref={headerRef}>
@@ -721,15 +665,6 @@ export function MainLayout() {
             </Button>
             <Button variant="ghost" size="sm" onClick={handleVersionCheck} title={t('header.check_update')}>
               {headerIcons.update}
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleOpenPublishModal}
-              title={t('header.publish')}
-              className={hasSavedPublishUrl ? 'header-action-active' : ''}
-            >
-              <IconSatellite size={16} />
             </Button>
             <div
               className={`language-menu ${languageMenuOpen ? 'open' : ''}`}
@@ -888,76 +823,6 @@ export function MainLayout() {
           </main>
         </div>
       </div>
-
-      <Modal
-        open={publishModalOpen}
-        onClose={() => setPublishModalOpen(false)}
-        title={t('publish.title')}
-        width={680}
-        footer={
-          <>
-            <Button
-              variant="secondary"
-              onClick={() => setPublishModalOpen(false)}
-            >
-              {t('common.close')}
-            </Button>
-            <Button variant="secondary" onClick={handlePublishCommandCopy}>
-              {t('publish.copy_command')}
-            </Button>
-            <Button onClick={handlePublishUrlSave}>
-              {publishUrlValue ? t('publish.save_url') : t('publish.clear_url')}
-            </Button>
-          </>
-        }
-      >
-        <div className="publish-modal">
-          <p className="publish-modal-desc">{t('publish.description')}</p>
-          <div className="status-badge warning">{t('publish.temporary_badge')}</div>
-
-          <div className="publish-modal-section">
-            <div className="publish-modal-section-title">{t('publish.command_label')}</div>
-            <pre className="publish-command-block">{QUICK_TUNNEL_COMMAND}</pre>
-          </div>
-
-          <div className="publish-modal-section">
-            <Input
-              label={t('publish.url_label')}
-              value={publishUrlDraft}
-              onChange={(event) => setPublishUrlDraft(event.target.value)}
-              placeholder={t('publish.url_placeholder')}
-              hint={t('publish.url_hint')}
-              error={publishUrlError || undefined}
-            />
-            <div className="publish-modal-actions">
-              <Button
-                variant="secondary"
-                onClick={handlePublishUrlCopy}
-                disabled={!hasSavedPublishUrl}
-              >
-                {t('publish.copy_url')}
-              </Button>
-              <Button
-                variant="secondary"
-                onClick={handlePublishUrlOpen}
-                disabled={!hasSavedPublishUrl}
-              >
-                {t('publish.open_url')}
-              </Button>
-            </div>
-          </div>
-
-          <div className="publish-modal-section">
-            <div className="publish-modal-section-title">{t('publish.notes_title')}</div>
-            <ul className="publish-notes-list">
-              <li>{t('publish.note_install')}</li>
-              <li>{t('publish.note_manual')}</li>
-              <li>{t('publish.note_temporary')}</li>
-              <li>{t('publish.note_background')}</li>
-            </ul>
-          </div>
-        </div>
-      </Modal>
 
       <Modal
         open={upgradeModalOpen}
