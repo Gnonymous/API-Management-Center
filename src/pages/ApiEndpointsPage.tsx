@@ -11,7 +11,7 @@ import {
   IconEye,
   IconEyeOff,
 } from '@/components/ui/icons';
-import { useConfigStore, useNotificationStore, useThemeStore } from '@/stores';
+import { useAuthStore, useConfigStore, useNotificationStore, useThemeStore } from '@/stores';
 import { copyToClipboard } from '@/utils/clipboard';
 import { normalizeApiBase } from '@/utils/connection';
 import {
@@ -35,7 +35,7 @@ import styles from './ApiEndpointsPage.module.scss';
 
 const CODE_LANGUAGES = ['curl', 'python', 'node'] as const;
 type CodeLang = (typeof CODE_LANGUAGES)[number];
-const FIXED_API_BASE_URL = 'http://127.0.0.1:8317/v1';
+const DEFAULT_SNIPPET_BASE_URL = 'https://your-api-host/v1';
 
 type ProviderIconKind = 'openai' | 'claude' | 'gemini' | 'antigravity';
 
@@ -43,6 +43,9 @@ interface ProviderCardProps {
   provider: EndpointProviderEntry;
   modelsState: ProviderModelsState;
   resolvedTheme: string;
+  displayBaseUrl: string;
+  clientBaseUrl: string;
+  chatCompletionsUrl: string;
   selectedKeyIdx: number;
   onSelectKey: (providerId: string, keyIndex: number) => void;
   onReloadModels: (providerId: string) => void;
@@ -62,8 +65,8 @@ const maskKey = (key: string): string => {
   return `${key.slice(0, 5)}${'•'.repeat(Math.min(key.length - 8, 16))}${key.slice(-4)}`;
 };
 
-const buildClientBaseUrl = (): string => {
-  const normalized = normalizeApiBase(FIXED_API_BASE_URL);
+const buildClientBaseUrl = (baseUrl: string): string => {
+  const normalized = normalizeApiBase(baseUrl);
   if (!normalized) return '';
 
   const trimmed = normalized.replace(/\/+$/g, '');
@@ -74,8 +77,8 @@ const buildClientBaseUrl = (): string => {
   return `${trimmed}/v1`;
 };
 
-const buildChatCompletionsUrl = (): string => {
-  const clientBaseUrl = buildClientBaseUrl();
+const buildChatCompletionsUrl = (baseUrl: string): string => {
+  const clientBaseUrl = buildClientBaseUrl(baseUrl);
   if (!clientBaseUrl) return '';
   return `${clientBaseUrl}/chat/completions`;
 };
@@ -318,6 +321,9 @@ function ProviderCard({
   provider,
   modelsState,
   resolvedTheme,
+  displayBaseUrl,
+  clientBaseUrl,
+  chatCompletionsUrl,
   selectedKeyIdx,
   onSelectKey,
   onReloadModels,
@@ -341,9 +347,6 @@ function ProviderCard({
   const selectedKey = provider.keyOptions[safeSelectedKeyIdx];
   const currentKey = selectedKey?.apiKey ?? '';
   const currentKeyDisplay = formatKeyOptionDisplay(selectedKey, keyVisible);
-  const displayBaseUrl = FIXED_API_BASE_URL;
-  const chatCompletionsUrl = buildChatCompletionsUrl();
-  const clientBaseUrl = buildClientBaseUrl();
   const realKeyOptions = provider.realKeyOptions ?? [];
   const safeRealKeyIdx = clampKeyIndex(realKeyIdx, realKeyOptions.length);
   const currentRealKey = realKeyOptions[safeRealKeyIdx]?.apiKey ?? '';
@@ -440,14 +443,16 @@ function ProviderCard({
   const codeSnippet = useMemo(() => {
     const key = currentKey || 'YOUR_API_KEY';
     const model = testModel || sampleModel;
+    const snippetBaseUrl = clientBaseUrl || DEFAULT_SNIPPET_BASE_URL;
+    const snippetChatCompletionsUrl = chatCompletionsUrl || `${snippetBaseUrl}/chat/completions`;
 
     if (codeLang === 'curl') {
-      return generateCurl(chatCompletionsUrl || `${FIXED_API_BASE_URL}/chat/completions`, key, model);
+      return generateCurl(snippetChatCompletionsUrl, key, model);
     }
     if (codeLang === 'python') {
-      return generatePython(clientBaseUrl || FIXED_API_BASE_URL, key, model);
+      return generatePython(snippetBaseUrl, key, model);
     }
-    return generateNode(clientBaseUrl || FIXED_API_BASE_URL, key, model);
+    return generateNode(snippetBaseUrl, key, model);
   }, [chatCompletionsUrl, clientBaseUrl, codeLang, currentKey, sampleModel, testModel]);
 
   return (
@@ -753,6 +758,7 @@ function ProviderCard({
 export function ApiEndpointsPage() {
   const { t } = useTranslation();
   const resolvedTheme = useThemeStore((state) => state.resolvedTheme);
+  const apiBase = useAuthStore((state) => state.apiBase);
 
   const config = useConfigStore((state) => state.config);
   const {
@@ -868,6 +874,9 @@ export function ApiEndpointsPage() {
     });
 
   const hasAnyProviders = sections.some((section) => section.items.length > 0);
+  const clientBaseUrl = useMemo(() => buildClientBaseUrl(apiBase), [apiBase]);
+  const chatCompletionsUrl = useMemo(() => buildChatCompletionsUrl(apiBase), [apiBase]);
+  const displayBaseUrl = clientBaseUrl;
 
   return (
     <div className={styles.container}>
@@ -924,6 +933,9 @@ export function ApiEndpointsPage() {
                       provider={provider}
                       modelsState={modelsByProvider[provider.id] ?? DEFAULT_MODELS_STATE}
                       resolvedTheme={resolvedTheme}
+                      displayBaseUrl={displayBaseUrl}
+                      clientBaseUrl={clientBaseUrl}
+                      chatCompletionsUrl={chatCompletionsUrl}
                       selectedKeyIdx={selectedKeyIndexByProvider[provider.id] ?? 0}
                       onSelectKey={handleSelectKey}
                       onReloadModels={handleReloadProviderModels}
