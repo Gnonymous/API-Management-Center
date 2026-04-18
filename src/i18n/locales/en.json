@@ -674,7 +674,14 @@
     "plan_team": "Team",
     "plan_free": "Free",
     "plan_pro": "Pro 20x",
-    "plan_prolite": "Pro 5x"
+    "plan_prolite": "Pro 5x",
+    "billing_date_label": "Next billing date",
+    "billing_date_value": "{{date}} · {{remaining}}",
+    "billing_remaining_days": "{{count}} days left",
+    "billing_remaining_today": "today",
+    "billing_cycle_label": "Billing cycle",
+    "billing_cycle_range": "{{start}} - {{end}}",
+    "billing_cycle_permanent": "Permanent"
   },
   "gemini_cli_quota": {
     "title": "Gemini CLI Quota",

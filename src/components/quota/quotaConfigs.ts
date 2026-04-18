@@ -58,8 +58,14 @@ import {
   parseKimiUsagePayload,
   resolveCodexChatgptAccountId,
   resolveCodexPlanType,
+  resolveCodexSubscriptionActiveStart,
+  resolveCodexSubscriptionActiveUntil,
   resolveGeminiCliProjectId,
   formatCodexResetLabel,
+  formatSubscriptionDate,
+  formatSubscriptionStartDate,
+  getRemainingPercentInRange,
+  getRemainingDaysUntil,
   formatQuotaResetTime,
   formatKimiResetHint,
   buildAntigravityQuotaGroups,
@@ -111,6 +117,7 @@ export interface QuotaConfig<TState, TData> {
   i18nPrefix: string;
   cardIdleMessageKey?: string;
   filterFn: (file: AuthFileItem) => boolean;
+  sortFiles?: (files: AuthFileItem[]) => AuthFileItem[];
   fetchQuota: (file: AuthFileItem, t: TFunction) => Promise<TData>;
   storeSelector: (state: QuotaStore) => Record<string, TState>;
   storeSetter: keyof QuotaStore;
@@ -401,7 +408,12 @@ const buildCodexQuotaWindows = (payload: CodexUsagePayload, t: TFunction): Codex
 const fetchCodexQuota = async (
   file: AuthFileItem,
   t: TFunction
-): Promise<{ planType: string | null; windows: CodexQuotaWindow[] }> => {
+): Promise<{
+  planType: string | null;
+  windows: CodexQuotaWindow[];
+  subscriptionActiveStart: string | null;
+  subscriptionActiveUntil: string | null;
+}> => {
   const rawAuthIndex = file['auth_index'] ?? file.authIndex;
   const authIndex = normalizeAuthIndex(rawAuthIndex);
   if (!authIndex) {
@@ -409,6 +421,8 @@ const fetchCodexQuota = async (
   }
 
   const planTypeFromFile = resolveCodexPlanType(file);
+  const subscriptionActiveStart = resolveCodexSubscriptionActiveStart(file);
+  const subscriptionActiveUntil = resolveCodexSubscriptionActiveUntil(file);
   const accountId = resolveCodexChatgptAccountId(file);
   if (!accountId) {
     throw new Error(t('codex_quota.missing_account_id'));
@@ -437,7 +451,12 @@ const fetchCodexQuota = async (
 
   const planTypeFromUsage = normalizePlanType(payload.plan_type ?? payload.planType);
   const windows = buildCodexQuotaWindows(payload, t);
-  return { planType: planTypeFromUsage ?? planTypeFromFile, windows };
+  return {
+    planType: planTypeFromUsage ?? planTypeFromFile,
+    windows,
+    subscriptionActiveStart,
+    subscriptionActiveUntil,
+  };
 };
 
 const GEMINI_CLI_G1_CREDIT_TYPE = 'GOOGLE_ONE_AI';
@@ -734,6 +753,31 @@ const renderAntigravityItems = (
 
 const PREMIUM_GEMINI_CLI_TIER_IDS = new Set(['g1-ultra-tier']);
 const PREMIUM_CODEX_PLAN_TYPES = new Set(['pro', 'prolite', 'pro-lite', 'pro_lite']);
+const CODEX_PLAN_SORT_ORDER = new Map([
+  ['pro', 0],
+  ['prolite', 0],
+  ['pro-lite', 0],
+  ['pro_lite', 0],
+  ['plus', 1],
+  ['team', 2],
+  ['free', 3],
+]);
+
+const sortCodexQuotaFiles = (files: AuthFileItem[]): AuthFileItem[] =>
+  [...files].sort((left, right) => {
+    const leftPlan = normalizePlanType(resolveCodexPlanType(left)) ?? '';
+    const rightPlan = normalizePlanType(resolveCodexPlanType(right)) ?? '';
+    const leftOrder = CODEX_PLAN_SORT_ORDER.get(leftPlan) ?? Number.MAX_SAFE_INTEGER;
+    const rightOrder = CODEX_PLAN_SORT_ORDER.get(rightPlan) ?? Number.MAX_SAFE_INTEGER;
+
+    if (leftOrder !== rightOrder) {
+      return leftOrder - rightOrder;
+    }
+
+    return String(left.name ?? '').localeCompare(String(right.name ?? ''), undefined, {
+      sensitivity: 'accent',
+    });
+  });
 
 const renderCodexItems = (
   quota: CodexQuotaState,
@@ -744,6 +788,8 @@ const renderCodexItems = (
   const { createElement: h, Fragment } = React;
   const windows = quota.windows ?? [];
   const planType = quota.planType ?? null;
+  const subscriptionActiveStart = quota.subscriptionActiveStart ?? null;
+  const subscriptionActiveUntil = quota.subscriptionActiveUntil ?? null;
 
   const getPlanLabel = (pt?: string | null): string | null => {
     const normalized = normalizePlanType(pt);
@@ -760,6 +806,16 @@ const renderCodexItems = (
 
   const planLabel = getPlanLabel(planType);
   const isPremiumPlan = PREMIUM_CODEX_PLAN_TYPES.has(normalizePlanType(planType) ?? '');
+  const billingDateLabel = subscriptionActiveUntil
+    ? formatSubscriptionDate(subscriptionActiveUntil)
+    : '-';
+  const remainingDays = subscriptionActiveUntil
+    ? getRemainingDaysUntil(subscriptionActiveUntil)
+    : null;
+  const billingCyclePercent =
+    normalizePlanType(planType) === 'free'
+      ? 100
+      : getRemainingPercentInRange(subscriptionActiveStart, subscriptionActiveUntil);
   const nodes: ReactNode[] = [];
 
   if (planLabel) {
@@ -769,7 +825,51 @@ const renderCodexItems = (
         'div',
         { key: 'plan', className: styleMap.codexPlan },
         h('span', { className: styleMap.codexPlanLabel }, t('codex_quota.plan_label')),
-        h('span', { className: valueClass }, planLabel)
+        h('span', { className: valueClass }, planLabel),
+        billingDateLabel !== '-' && remainingDays !== null
+          ? h(
+              Fragment,
+              { key: 'billing-inline' },
+              h('span', { className: styleMap.codexPlanDot, 'aria-hidden': 'true' }, '·'),
+              h(
+                'span',
+                { className: styleMap.codexPlanInlineMeta },
+                t('codex_quota.billing_date_label')
+              ),
+              h(
+                'span',
+                { className: styleMap.codexPlanInlineValue },
+                billingDateLabel
+              ),
+              h('span', { className: styleMap.codexPlanDot, 'aria-hidden': 'true' }, '·'),
+              h(
+                'span',
+                { className: styleMap.codexPlanInlineValue },
+                remainingDays > 0
+                  ? t('codex_quota.billing_remaining_days', { count: remainingDays })
+                  : t('codex_quota.billing_remaining_today')
+              )
+            )
+          : null
+      )
+    );
+  } else if (billingDateLabel !== '-' && remainingDays !== null) {
+    nodes.push(
+      h(
+        'div',
+        { key: 'billing', className: styleMap.codexPlan },
+        h('span', { className: styleMap.codexPlanLabel }, t('codex_quota.billing_date_label')),
+        h(
+          'span',
+          { className: styleMap.codexPlanInlineValue },
+          t('codex_quota.billing_date_value', {
+            date: billingDateLabel,
+            remaining:
+              remainingDays > 0
+                ? t('codex_quota.billing_remaining_days', { count: remainingDays })
+                : t('codex_quota.billing_remaining_today'),
+          })
+        )
       )
     );
   }
@@ -812,6 +912,44 @@ const renderCodexItems = (
         })
       );
     })
+  );
+
+  nodes.push(
+    h(
+      'div',
+      { key: 'billing-cycle', className: styleMap.quotaRow },
+      h(
+        'div',
+        { className: styleMap.quotaRowHeader },
+        h('span', { className: styleMap.quotaModel }, t('codex_quota.billing_cycle_label')),
+        h(
+          'div',
+          { className: styleMap.quotaMeta },
+          h(
+            'span',
+            { className: styleMap.quotaPercent },
+            `${Math.round(Math.max(0, Math.min(100, billingCyclePercent ?? 0)))}%`
+          ),
+          h(
+            'span',
+            { className: styleMap.quotaReset },
+            normalizePlanType(planType) === 'free'
+              ? t('codex_quota.billing_cycle_permanent')
+              : billingDateLabel !== '-'
+                ? t('codex_quota.billing_cycle_range', {
+                    start: formatSubscriptionStartDate(subscriptionActiveStart),
+                    end: billingDateLabel,
+                  })
+                : t('codex_quota.billing_cycle_permanent')
+          )
+        )
+      ),
+      h(QuotaProgressBar, {
+        percent: billingCyclePercent,
+        highThreshold: QUOTA_PROGRESS_HIGH_THRESHOLD,
+        mediumThreshold: QUOTA_PROGRESS_MEDIUM_THRESHOLD,
+      })
+    )
   );
 
   return h(Fragment, null, ...nodes);
@@ -1164,12 +1302,18 @@ export const ANTIGRAVITY_CONFIG: QuotaConfig<AntigravityQuotaState, AntigravityQ
 
 export const CODEX_CONFIG: QuotaConfig<
   CodexQuotaState,
-  { planType: string | null; windows: CodexQuotaWindow[] }
+  {
+    planType: string | null;
+    windows: CodexQuotaWindow[];
+    subscriptionActiveStart: string | null;
+    subscriptionActiveUntil: string | null;
+  }
 > = {
   type: 'codex',
   i18nPrefix: 'codex_quota',
   cardIdleMessageKey: 'quota_management.card_idle_hint',
   filterFn: (file) => isCodexFile(file) && !isDisabledAuthFile(file),
+  sortFiles: sortCodexQuotaFiles,
   fetchQuota: fetchCodexQuota,
   storeSelector: (state) => state.codexQuota,
   storeSetter: 'setCodexQuota',
@@ -1178,6 +1322,8 @@ export const CODEX_CONFIG: QuotaConfig<
     status: 'success',
     windows: data.windows,
     planType: data.planType,
+    subscriptionActiveStart: data.subscriptionActiveStart,
+    subscriptionActiveUntil: data.subscriptionActiveUntil,
   }),
   buildErrorState: (message, status) => ({
     status: 'error',
