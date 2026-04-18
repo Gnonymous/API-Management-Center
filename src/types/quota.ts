@@ -242,6 +242,8 @@ export interface CodexQuotaState {
   status: 'idle' | 'loading' | 'success' | 'error';
   windows: CodexQuotaWindow[];
   planType?: string | null;
+  subscriptionActiveStart?: string | null;
+  subscriptionActiveUntil?: string | null;
   error?: string;
   errorStatus?: number;
 }
