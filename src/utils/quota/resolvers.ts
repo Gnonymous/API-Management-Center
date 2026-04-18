@@ -78,6 +78,64 @@ export function resolveCodexPlanType(file: AuthFileItem): string | null {
   return null;
 }
 
+export function resolveCodexSubscriptionActiveUntil(file: AuthFileItem): string | null {
+  return resolveCodexSubscriptionTimestamp(file, [
+    'chatgpt_subscription_active_until',
+    'chatgptSubscriptionActiveUntil',
+    'subscription_active_until',
+    'subscriptionActiveUntil',
+  ]);
+}
+
+export function resolveCodexSubscriptionActiveStart(file: AuthFileItem): string | null {
+  return resolveCodexSubscriptionTimestamp(file, [
+    'chatgpt_subscription_active_start',
+    'chatgptSubscriptionActiveStart',
+    'subscription_active_start',
+    'subscriptionActiveStart',
+  ]);
+}
+
+function resolveCodexSubscriptionTimestamp(
+  file: AuthFileItem,
+  fieldNames: string[]
+): string | null {
+  const metadata =
+    file && typeof file.metadata === 'object' && file.metadata !== null
+      ? (file.metadata as Record<string, unknown>)
+      : null;
+  const attributes =
+    file && typeof file.attributes === 'object' && file.attributes !== null
+      ? (file.attributes as Record<string, unknown>)
+      : null;
+  const idToken =
+    file && typeof file.id_token === 'object' && file.id_token !== null
+      ? (file.id_token as Record<string, unknown>)
+      : null;
+  const metadataIdToken =
+    metadata && typeof metadata.id_token === 'object' && metadata.id_token !== null
+      ? (metadata.id_token as Record<string, unknown>)
+      : null;
+
+  const candidates = [
+    ...fieldNames.map((fieldName) => file[fieldName]),
+    file.id_token,
+    ...fieldNames.map((fieldName) => idToken?.[fieldName]),
+    ...fieldNames.map((fieldName) => metadata?.[fieldName]),
+    metadata?.id_token,
+    ...fieldNames.map((fieldName) => metadataIdToken?.[fieldName]),
+    ...fieldNames.map((fieldName) => attributes?.[fieldName]),
+    attributes?.id_token,
+  ];
+
+  for (const candidate of candidates) {
+    const value = normalizeStringValue(candidate);
+    if (value) return value;
+  }
+
+  return null;
+}
+
 export function extractGeminiCliProjectId(value: unknown): string | null {
   if (typeof value !== 'string') return null;
   const matches = Array.from(value.matchAll(/\(([^()]+)\)/g));
