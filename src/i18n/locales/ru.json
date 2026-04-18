@@ -671,7 +671,14 @@
     "plan_team": "Team",
     "plan_free": "Free",
     "plan_pro": "Pro 20x",
-    "plan_prolite": "Pro 5x"
+    "plan_prolite": "Pro 5x",
+    "billing_date_label": "Следующее списание",
+    "billing_date_value": "{{date}} · {{remaining}}",
+    "billing_remaining_days": "осталось {{count}} дн.",
+    "billing_remaining_today": "сегодня",
+    "billing_cycle_label": "Платежный цикл",
+    "billing_cycle_range": "{{start}} - {{end}}",
+    "billing_cycle_permanent": "Постоянно"
   },
   "gemini_cli_quota": {
     "title": "Квота Gemini CLI",

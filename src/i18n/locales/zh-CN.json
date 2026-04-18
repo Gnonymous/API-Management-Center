@@ -675,7 +675,14 @@
     "plan_team": "Team",
     "plan_free": "Free",
     "plan_pro": "Pro 20x",
-    "plan_prolite": "Pro 5x"
+    "plan_prolite": "Pro 5x",
+    "billing_date_label": "下次账单日",
+    "billing_date_value": "{{date}} · {{remaining}}",
+    "billing_remaining_days": "剩余 {{count}} 天",
+    "billing_remaining_today": "今天",
+    "billing_cycle_label": "账单周期",
+    "billing_cycle_range": "{{start}} - {{end}}",
+    "billing_cycle_permanent": "永久"
   },
   "gemini_cli_quota": {
     "title": "Gemini CLI 额度",
