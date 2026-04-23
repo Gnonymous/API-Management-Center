@@ -61,6 +61,7 @@ import {
   resolveCodexSubscriptionActiveStart,
   resolveCodexSubscriptionActiveUntil,
   resolveGeminiCliProjectId,
+  sortCodexQuotaFiles,
   formatCodexResetLabel,
   formatSubscriptionDate,
   formatSubscriptionStartDate,
@@ -753,31 +754,6 @@ const renderAntigravityItems = (
 
 const PREMIUM_GEMINI_CLI_TIER_IDS = new Set(['g1-ultra-tier']);
 const PREMIUM_CODEX_PLAN_TYPES = new Set(['pro', 'prolite', 'pro-lite', 'pro_lite']);
-const CODEX_PLAN_SORT_ORDER = new Map([
-  ['pro', 0],
-  ['prolite', 0],
-  ['pro-lite', 0],
-  ['pro_lite', 0],
-  ['plus', 1],
-  ['team', 2],
-  ['free', 3],
-]);
-
-const sortCodexQuotaFiles = (files: AuthFileItem[]): AuthFileItem[] =>
-  [...files].sort((left, right) => {
-    const leftPlan = normalizePlanType(resolveCodexPlanType(left)) ?? '';
-    const rightPlan = normalizePlanType(resolveCodexPlanType(right)) ?? '';
-    const leftOrder = CODEX_PLAN_SORT_ORDER.get(leftPlan) ?? Number.MAX_SAFE_INTEGER;
-    const rightOrder = CODEX_PLAN_SORT_ORDER.get(rightPlan) ?? Number.MAX_SAFE_INTEGER;
-
-    if (leftOrder !== rightOrder) {
-      return leftOrder - rightOrder;
-    }
-
-    return String(left.name ?? '').localeCompare(String(right.name ?? ''), undefined, {
-      sensitivity: 'accent',
-    });
-  });
 
 const renderCodexItems = (
   quota: CodexQuotaState,

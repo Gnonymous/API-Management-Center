@@ -59,6 +59,7 @@ import {
   type AuthFilesSortMode,
 } from '@/features/authFiles/uiState';
 import { useAuthStore, useNotificationStore, useThemeStore } from '@/stores';
+import { compareCodexAuthFilesByPlan } from '@/utils/quota';
 import styles from './AuthFilesPage.module.scss';
 
 const easePower3Out = (progress: number) => 1 - (1 - progress) ** 4;
@@ -405,6 +406,9 @@ export function AuthFilesPage() {
         const providerB = normalizeProviderKey(String(b.provider ?? b.type ?? 'unknown'));
         const providerCompare = providerA.localeCompare(providerB);
         if (providerCompare !== 0) return providerCompare;
+        if (providerA === 'codex') {
+          return compareCodexAuthFilesByPlan(a, b);
+        }
         return a.name.localeCompare(b.name);
       });
     } else if (sortMode === 'az') {

@@ -78,6 +78,34 @@ export function resolveCodexPlanType(file: AuthFileItem): string | null {
   return null;
 }
 
+const CODEX_PLAN_SORT_ORDER = new Map([
+  ['pro', 0],
+  ['prolite', 0],
+  ['pro-lite', 0],
+  ['pro_lite', 0],
+  ['plus', 1],
+  ['team', 2],
+  ['free', 3],
+]);
+
+export function compareCodexAuthFilesByPlan(left: AuthFileItem, right: AuthFileItem): number {
+  const leftPlan = normalizePlanType(resolveCodexPlanType(left)) ?? '';
+  const rightPlan = normalizePlanType(resolveCodexPlanType(right)) ?? '';
+  const leftOrder = CODEX_PLAN_SORT_ORDER.get(leftPlan) ?? Number.MAX_SAFE_INTEGER;
+  const rightOrder = CODEX_PLAN_SORT_ORDER.get(rightPlan) ?? Number.MAX_SAFE_INTEGER;
+
+  if (leftOrder !== rightOrder) {
+    return leftOrder - rightOrder;
+  }
+
+  return String(left.name ?? '').localeCompare(String(right.name ?? ''), undefined, {
+    sensitivity: 'accent',
+  });
+}
+
+export const sortCodexQuotaFiles = (files: AuthFileItem[]): AuthFileItem[] =>
+  [...files].sort(compareCodexAuthFilesByPlan);
+
 export function resolveCodexSubscriptionActiveUntil(file: AuthFileItem): string | null {
   return resolveCodexSubscriptionTimestamp(file, [
     'chatgpt_subscription_active_until',
