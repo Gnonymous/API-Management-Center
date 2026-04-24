@@ -582,6 +582,7 @@
     "prefix_proxy_loading": "Загрузка файла авторизации...",
     "prefix_proxy_info_label": "Информация о файле авторизации (info)",
     "prefix_proxy_source_label": "JSON файла авторизации (предпросмотр)",
+    "cc_switch_import_json_label": "CC-Switch import JSON",
     "prefix_label": "Префикс (prefix)",
     "proxy_url_label": "URL прокси (proxy_url)",
     "prefix_placeholder": "",

@@ -583,6 +583,7 @@
     "prefix_proxy_loading": "正在加载认证文件...",
     "prefix_proxy_info_label": "认证文件信息（info）",
     "prefix_proxy_source_label": "认证文件 JSON（预览）",
+    "cc_switch_import_json_label": "CC-Switch 导入 json",
     "prefix_label": "前缀（prefix）",
     "proxy_url_label": "代理 URL（proxy_url）",
     "prefix_placeholder": "",

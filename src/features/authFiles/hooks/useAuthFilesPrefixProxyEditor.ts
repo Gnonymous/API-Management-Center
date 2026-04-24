@@ -5,6 +5,7 @@ import type { AuthFileItem } from '@/types';
 import { useNotificationStore } from '@/stores';
 import { formatFileSize } from '@/utils/format';
 import { MAX_AUTH_FILE_SIZE } from '@/utils/constants';
+import { buildCcSwitchImportJsonText } from '@/features/authFiles/utils/ccSwitchImport';
 import {
   applyCodexAuthFileWebsockets,
   normalizeExcludedModels,
@@ -42,6 +43,7 @@ export type PrefixProxyEditorState = {
   originalText: string;
   rawText: string;
   json: Record<string, unknown> | null;
+  ccSwitchImportText: string;
   prefix: string;
   proxyUrl: string;
   priority: string;
@@ -221,6 +223,7 @@ export function useAuthFilesPrefixProxyEditor(
       originalText: '',
       rawText: '',
       json: null,
+      ccSwitchImportText: '',
       prefix: '',
       proxyUrl: '',
       priority: '',
@@ -250,6 +253,7 @@ export function useAuthFilesPrefixProxyEditor(
             error: t('auth_files.prefix_proxy_invalid_json'),
             rawText: trimmed,
             originalText: trimmed,
+            ccSwitchImportText: '',
           };
         });
         return;
@@ -264,6 +268,7 @@ export function useAuthFilesPrefixProxyEditor(
             error: t('auth_files.prefix_proxy_invalid_json'),
             rawText: trimmed,
             originalText: trimmed,
+            ccSwitchImportText: '',
           };
         });
         return;
@@ -300,6 +305,7 @@ export function useAuthFilesPrefixProxyEditor(
           originalText,
           rawText: originalText,
           json,
+          ccSwitchImportText: buildCcSwitchImportJsonText(json),
           prefix,
           proxyUrl,
           priority: priority !== undefined ? String(priority) : '',

@@ -580,6 +580,7 @@
     "prefix_proxy_loading": "正在載入驗證檔案...",
     "prefix_proxy_info_label": "驗證檔案資訊（info）",
     "prefix_proxy_source_label": "驗證檔案 JSON（預覽）",
+    "cc_switch_import_json_label": "CC-Switch 匯入 json",
     "prefix_label": "前綴（prefix）",
     "proxy_url_label": "代理 URL（proxy_url）",
     "prefix_placeholder": "",

@@ -583,6 +583,7 @@
     "prefix_proxy_loading": "Loading auth file...",
     "prefix_proxy_info_label": "Auth file info (info)",
     "prefix_proxy_source_label": "Auth file JSON (preview)",
+    "cc_switch_import_json_label": "CC-Switch import JSON",
     "prefix_label": "Prefix (prefix)",
     "proxy_url_label": "Proxy URL (proxy_url)",
     "prefix_placeholder": "",
