@@ -3,7 +3,17 @@ import { useTranslation } from 'react-i18next';
 import { authFilesApi, type AuthFileFieldsPatch } from '@/services/api';
 import type { AuthFileItem } from '@/types';
 import { useNotificationStore } from '@/stores';
-import { parsePriorityValue } from '@/features/authFiles/constants';
+import { formatFileSize } from '@/utils/format';
+import { MAX_AUTH_FILE_SIZE } from '@/utils/constants';
+import { buildCcSwitchImportJsonText } from '@/features/authFiles/utils/ccSwitchImport';
+import {
+  applyCodexAuthFileWebsockets,
+  normalizeExcludedModels,
+  parseDisableCoolingValue,
+  parseExcludedModelsText,
+  parsePriorityValue,
+  readCodexAuthFileWebsockets,
+} from '@/features/authFiles/constants';
 
 type AuthFileHeaders = Record<string, string>;
 type AuthFileHeadersErrorKey =
@@ -28,6 +38,7 @@ export type PrefixProxyEditorState = {
   rawText: string;
   invalidContentPreview: string;
   json: Record<string, unknown> | null;
+  ccSwitchImportText: string;
   prefix: string;
   proxyUrl: string;
   priority: string;
@@ -349,6 +360,7 @@ export function useAuthFilesPrefixProxyEditor(
       rawText: '',
       invalidContentPreview: '',
       json: null,
+      ccSwitchImportText: '',
       prefix: '',
       proxyUrl: '',
       priority: '',
@@ -372,6 +384,7 @@ export function useAuthFilesPrefixProxyEditor(
           return {
             ...prev,
             ...buildInvalidAuthFileContentState(rawText, (key) => t(key)),
+            ccSwitchImportText: '',
           };
         });
         return;
@@ -383,6 +396,7 @@ export function useAuthFilesPrefixProxyEditor(
           return {
             ...prev,
             ...buildInvalidAuthFileContentState(rawText, (key) => t(key)),
+            ccSwitchImportText: '',
           };
         });
         return;
@@ -412,6 +426,7 @@ export function useAuthFilesPrefixProxyEditor(
           rawText: originalText,
           invalidContentPreview: '',
           json,
+          ccSwitchImportText: buildCcSwitchImportJsonText(json),
           prefix,
           proxyUrl,
           priority: priority !== undefined ? String(priority) : '',

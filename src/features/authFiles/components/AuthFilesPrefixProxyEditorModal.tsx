@@ -118,6 +118,19 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
                   </pre>
                 )}
               </div>
+              {editor.json && editor.ccSwitchImportText && (
+                <div className={styles.prefixProxyJsonWrapper}>
+                  <label className={styles.prefixProxyLabel}>
+                    {t('auth_files.cc_switch_import_json_label')}
+                  </label>
+                  <textarea
+                    className={styles.prefixProxyTextarea}
+                    rows={10}
+                    readOnly
+                    value={editor.ccSwitchImportText}
+                  />
+                </div>
+              )}
               {editor.json && (
                 <div className={styles.prefixProxyFields}>
                   <Input
