@@ -888,7 +888,7 @@ export function useVisualConfig() {
     undefined,
     createInitialVisualConfigState
   );
-  const { visualValues, visualParseError, baselineValues } = state;
+  const { visualValues, visualParseError, baselineValues, dirtyFields } = state;
   const visualDirty = state.dirtyFields.size > 0;
   const [apiKeysStorageMetadata, setApiKeysStorageMetadata] = useState<ApiKeysStorageMetadata>(
     DEFAULT_API_KEYS_STORAGE_METADATA
@@ -1237,7 +1237,7 @@ export function useVisualConfig() {
         return currentYaml;
       }
     },
-    [apiKeysStorageMetadata, baselineValues, visualValues]
+    [apiKeysStorageMetadata, baselineValues, dirtyFields, visualValues]
   );
 
   const setVisualValues = useCallback((newValues: Partial<VisualConfigValues>) => {
