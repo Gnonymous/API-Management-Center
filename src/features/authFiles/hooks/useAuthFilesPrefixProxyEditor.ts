@@ -3,17 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { authFilesApi, type AuthFileFieldsPatch } from '@/services/api';
 import type { AuthFileItem } from '@/types';
 import { useNotificationStore } from '@/stores';
-import { formatFileSize } from '@/utils/format';
-import { MAX_AUTH_FILE_SIZE } from '@/utils/constants';
 import { buildCcSwitchImportJsonText } from '@/features/authFiles/utils/ccSwitchImport';
-import {
-  applyCodexAuthFileWebsockets,
-  normalizeExcludedModels,
-  parseDisableCoolingValue,
-  parseExcludedModelsText,
-  parsePriorityValue,
-  readCodexAuthFileWebsockets,
-} from '@/features/authFiles/constants';
+import { parsePriorityValue } from '@/features/authFiles/constants';
 
 type AuthFileHeaders = Record<string, string>;
 type AuthFileHeadersErrorKey =

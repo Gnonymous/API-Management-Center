@@ -257,9 +257,7 @@ export function MainLayout() {
   const { showNotification } = useNotificationStore();
   const location = useLocation();
 
-  const apiBase = useAuthStore((state) => state.apiBase);
   const serverVersion = useAuthStore((state) => state.serverVersion);
-  const connectionStatus = useAuthStore((state) => state.connectionStatus);
   const logout = useAuthStore((state) => state.logout);
 
   const config = useConfigStore((state) => state.config);
@@ -279,7 +277,6 @@ export function MainLayout() {
   const [upgradeCommandCopied, setUpgradeCommandCopied] = useState(false);
   const [languageMenuOpen, setLanguageMenuOpen] = useState(false);
   const [themeMenuOpen, setThemeMenuOpen] = useState(false);
-  const [brandExpanded, setBrandExpanded] = useState(true);
   const contentRef = useRef<HTMLDivElement | null>(null);
   const languageMenuRef = useRef<HTMLDivElement | null>(null);
   const themeMenuRef = useRef<HTMLDivElement | null>(null);
@@ -622,7 +619,18 @@ export function MainLayout() {
           >
             {headerIcons.refresh}
           </Button>
-          <div className={`language-menu ${languageMenuOpen ? 'open' : ''}`} ref={languageMenuRef}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleVersionCheck}
+            title={t('header.check_update')}
+          >
+            {headerIcons.update}
+          </Button>
+          <div
+            className={`language-menu ${languageMenuOpen ? 'open' : ''}`}
+            ref={languageMenuRef}
+          >
             <Button
               variant="ghost"
               size="sm"
@@ -634,18 +642,10 @@ export function MainLayout() {
             >
               {headerIcons.language}
             </Button>
-            <Button variant="ghost" size="sm" onClick={handleVersionCheck} title={t('header.check_update')}>
-              {headerIcons.update}
-            </Button>
-            <div
-              className={`language-menu ${languageMenuOpen ? 'open' : ''}`}
-              ref={languageMenuRef}
-            >
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={toggleLanguageMenu}
-                title={t('language.switch')}
+            {languageMenuOpen && (
+              <div
+                className="notification entering language-menu-popover"
+                role="menu"
                 aria-label={t('language.switch')}
               >
                 {LANGUAGE_ORDER.map((lang) => (
