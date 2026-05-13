@@ -4,7 +4,7 @@ import '@/styles/global.scss';
 import { INLINE_LOGO_JPEG } from '@/assets/logoInline';
 import App from './App.tsx';
 
-document.title = 'Eohan G. - API';
+document.title = 'Eohan G. - CPA';
 document.documentElement.setAttribute('translate', 'no');
 document.documentElement.classList.add('notranslate');
 
