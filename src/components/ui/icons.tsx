@@ -509,3 +509,11 @@ export function IconZap({ size = 20, ...props }: IconProps) {
     </svg>
   );
 }
+
+export function IconDiamond({ size = 20, ...props }: IconProps) {
+  return (
+    <svg {...baseSvgProps} width={size} height={size} {...props}>
+      <path d="m12 3 7 9-7 9-7-9z" />
+    </svg>
+  );
+}

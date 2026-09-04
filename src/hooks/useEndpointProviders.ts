@@ -647,6 +647,7 @@ export function useEndpointProviders(): UseEndpointProvidersResult {
 
   const loadPageData = useCallback(
     async (forceRefresh = false) => {
+      void forceRefresh;
       if (
         authState.connectionStatus !== 'connected' ||
         !authState.apiBase
@@ -660,7 +661,7 @@ export function useEndpointProviders(): UseEndpointProvidersResult {
 
       try {
         const baseUrl = normalizeApiBase(authState.apiBase);
-        const config = (await fetchConfig(undefined, forceRefresh)) as Config;
+        const config = (await fetchConfig(undefined)) as Config;
 
         const [keyOptions, authFilesResult, aliasResult, excludedResult] =
           await Promise.all([
